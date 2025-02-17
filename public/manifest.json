@@ -1,0 +1,14 @@
+{
+    "version": "1.0.0",
+    "manifest_version": 3,
+    "name": "Clipbee",
+    "description": "Clipbee: Universal Clipboard Chrome Extension",
+    "action": {
+        "default_popup": "index.html",
+        "default_title": "Clipbee"
+    },
+    "permissions": [
+        "clipboardRead"
+    ]
+}
+
