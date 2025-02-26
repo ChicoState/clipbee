@@ -8,7 +8,23 @@
         "default_title": "Clipbee"
     },
     "permissions": [
+        "storage",
+        "offscreen",
         "clipboardRead"
+    ],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "offscreen.html",
+                "offscreen.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
     ]
 }
-
