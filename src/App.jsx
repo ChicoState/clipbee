@@ -1,4 +1,3 @@
-// React component (in your app.js or relevant component)
 import React, { useEffect, useState } from 'react';
 
 function App() {
