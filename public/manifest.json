@@ -1,14 +1,22 @@
 {
     "version": "1.0.0",
     "manifest_version": 3,
-    "name": "Clipbee",
-    "description": "Clipbee: Universal Clipboard Chrome Extension",
+    "name": "ClipBee",
+    "description": "ClipBee: Universal Clipboard Chrome Extension",
+    "permissions": [
+        "clipboardRead",
+        "clipboardWrite",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://firestore.googleapis.com/",
+        "https://www.gstatic.com/firebasejs/"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
     "action": {
         "default_popup": "index.html",
-        "default_title": "Clipbee"
-    },
-    "permissions": [
-        "clipboardRead"
-    ]
+        "default_title": "ClipBee"
+    }
 }
-
