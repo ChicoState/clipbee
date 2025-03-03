@@ -1,4 +1,5 @@
 let pollingInterval;
+const POLLINGINTERVAL = 1000;
 
 function checkClipboard() {
   //creates a textarea and pastes the clipboard content
@@ -20,11 +21,9 @@ function checkClipboard() {
 
 //listen for messages from service worker to start monitoring
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.target === 'offscreen') {
-    if (message.action === 'START_MONITORING') {
-      if (pollingInterval) clearInterval(pollingInterval);
-      pollingInterval = setInterval(checkClipboard, 1000);
-      checkClipboard();
-    }
+  if (message.target === 'offscreen' && message.action === 'START_MONITORING') {
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(checkClipboard, POLLINGINTERVAL);
+    checkClipboard();
   }
 });
