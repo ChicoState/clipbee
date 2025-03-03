@@ -1,4 +1,3 @@
-let lastClipboardText = '';
 let clipboardHistory = [];
 
 async function createOffscreenDocument() {
@@ -19,17 +18,11 @@ async function startClipboardMonitoring() {
     // handle clipboard data from offscreen document
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_DATA') {
       const clipboardText = message.data;
-      if (clipboardText !== lastClipboardText) {
-        lastClipboardText = clipboardText;
-        clipboardHistory.push(clipboardText);
+      if (clipboardText !== clipboardHistory[0]) {
+        clipboardHistory.unshift(clipboardText);
         console.log('Clipboard data changed:', clipboardText);
         //add firebase storage here i think
       }
-      //send to react current
-      chrome.runtime.sendMessage({ 
-        type: 'CLIPBOARD_CURRENT', 
-        data: clipboardText 
-      });
       //send to react history
       chrome.runtime.sendMessage({ 
         type: 'CLIPBOARD_HISTORY', 
@@ -39,7 +32,9 @@ async function startClipboardMonitoring() {
     // handle clear history from react
     if (message.target === 'service-worker' && message.action === 'CLEAR_HISTORY') {
       clipboardHistory = [];
-      lastClipboardText = '';
+      chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory });
+    }
+    if (message.target === 'service-worker' && message.action === 'CLIPBOARD_HISTORY_REACT_LOAD') {
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory });
     }
   });
