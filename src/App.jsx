@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
-const ITEMSPERPAGE = 1;
+const ITEMSPERPAGE = 5;
 
 function App() {
 
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
-    setClipboardHistory([]);
-    setClipboardContent('');
+    setClipboardHistory(['']);
   }
 
-  const [clipboardContent, setClipboardContent] = useState('');
   const [clipboardHistory, setClipboardHistory] = useState([]);
   const [clipboardPage, setClipboardPage] = useState(0);
 
   useEffect(() => {
+    //on load get current clipboard content
+    chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLIPBOARD_HISTORY_REACT_LOAD' });
     // listen for messages from service worker
     const messageListener = (message) => {
       if (message.type === 'CLIPBOARD_CURRENT') {
@@ -30,27 +30,23 @@ function App() {
     <div>
       <h3>Clipbee</h3>
       <h4>Current Clipboard</h4>
-      <p>{clipboardContent}</p>
-      <h4>Clipboard History</h4>
-      {clipboardHistory.length > 0 &&
+      <p>{clipboardHistory[0]}</p>
+      {clipboardHistory.length - 1 > 0 &&
         <div className="clipboard-history">
-          {clipboardHistory.length > ITEMSPERPAGE ? (
+          <h4>Clipboard History</h4>
+          {clipboardHistory.length - 1 > ITEMSPERPAGE ? (
             <>
             <ul>
-              {clipboardHistory.slice(clipboardPage * ITEMSPERPAGE, (clipboardPage + 1) * ITEMSPERPAGE).map((item, index) => (
+              {clipboardHistory.slice((clipboardPage * ITEMSPERPAGE) + 1, ((clipboardPage + 1) * ITEMSPERPAGE) + 1).map((item, index) => (
               <li key={index}>{item}</li>
              ))}
             </ul>
-            {clipboardPage > 0 &&
-              <button onClick={() => setClipboardPage(clipboardPage - 1)}>Previous Page</button>
-            }
-            {clipboardHistory.length > (clipboardPage + 1) * ITEMSPERPAGE &&
-              <button onClick={() => setClipboardPage(clipboardPage + 1)}>Next Page</button>
-            }
+            <button onClick={() => setClipboardPage(clipboardPage - 1) } disabled={clipboardPage === 0}>Previous Page</button>
+            <button onClick={() => setClipboardPage(clipboardPage + 1)} disabled={clipboardHistory.length - 1 <= ((clipboardPage+1) * ITEMSPERPAGE)}>Next Page</button>
           </>
           ) : (
             <ul>
-              {clipboardHistory.map((item, index) => (
+              {clipboardHistory.slice(1, clipboardHistory.length).map((item, index) => (
                 <li key={index}>{item}</li>
               ))}
             </ul>
