@@ -5,7 +5,7 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 
 // replace with actual Firebase config from Firebase Console
 const firebaseConfig = {
-    apiKey: "AIzaSyBIQx1Zy4vaRXrqvqbhDp402TW-oNFOLE8",
+    apiKey: "",
     authDomain: "clipbee-ed0bd.firebaseapp.com",
     projectId: "clipbee-ed0bd",
     storageBucket: "clipbee-ed0bd.firebasestorage.app",
