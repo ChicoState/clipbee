@@ -60,6 +60,7 @@ function App() {
   };
 
   return (
+      <div className="h-auto w-[300px] bg-white shadow-lg">
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold">Clipbee</h3>
@@ -71,7 +72,9 @@ function App() {
         </div>
 
         <h4 className="font-semibold mt-4">Current Clipboard</h4>
-        <p className="p-2 bg-gray-100 rounded truncate">{clipboardHistory[0]}</p>
+        <div className="p-2 bg-gray-100 rounded">
+          <p className="truncate">{clipboardHistory[0]}</p>
+        </div>
 
         {clipboardHistory.length - 1 > 0 &&
             <div className="clipboard-history mt-4">
@@ -121,6 +124,7 @@ function App() {
               </button>
             </div>
         }
+      </div>
       </div>
   );
 }
