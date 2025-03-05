@@ -10,11 +10,18 @@
     "permissions": [
         "storage",
         "offscreen",
-        "clipboardRead"
+        "clipboardRead",
+        "sidePanel"
     ],
     "background": {
         "service_worker": "background.js",
         "type": "module"
+    },
+    "side_panel": {
+        "default_path": "sidepanel.html"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://*.googleapis.com;"
     },
     "web_accessible_resources": [
         {
