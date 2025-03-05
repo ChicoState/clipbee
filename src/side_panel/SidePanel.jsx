@@ -36,13 +36,31 @@ function SidePanel() {
             });
     };
 
-    return (
-        <div className="p-1 w-full h-full bg-white">
-            <h2 className="text-xl font-bold mb-4">Clipbee Side Panel</h2>
+    const openPopup = async () => {
+        try {
+            // Send message to background script to open popup
+            chrome.runtime.sendMessage({
+                target: 'service-worker',
+                action: 'OPEN_POPUP',
+            });
+        } catch (error) {
+            console.error('Error opening popup:', error);
+        }
+    };
 
+    return (
+        <div className="p-1 w-auto h-full bg-white m-2">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Clipbee</h3>
+                <button
+                    onClick={openPopup}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                    Open Popup
+                </button>
+            </div>
             <div className="mb-4">
                 <h4 className="font-semibold mt-2">Current Clipboard</h4>
-                <p className="p-2 bg-gray-100 rounded">{clipboardHistory[0]}</p>
+                <p className="p-2 bg-gray-100 rounded truncate">{clipboardHistory[0]}</p>
             </div>
 
             <div className="mt-2">

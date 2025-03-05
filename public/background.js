@@ -41,6 +41,9 @@ async function startClipboardMonitoring() {
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
       chrome.sidePanel.open({ windowId: message.windowId });
     }
+    if (message.target === 'service-worker' && message.action === 'OPEN_POPUP') {
+      chrome.action.openPopup();
+    }
   });
 }
 
