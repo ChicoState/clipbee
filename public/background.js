@@ -24,9 +24,9 @@ async function startClipboardMonitoring() {
         //add firebase storage here i think
       }
       //send to react history
-      chrome.runtime.sendMessage({ 
-        type: 'CLIPBOARD_HISTORY', 
-        data: clipboardHistory 
+      chrome.runtime.sendMessage({
+        type: 'CLIPBOARD_HISTORY',
+        data: clipboardHistory
       });
     }
     // handle clear history from react
@@ -37,9 +37,19 @@ async function startClipboardMonitoring() {
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_HISTORY_REACT_LOAD') {
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory });
     }
+    // Handle side panel open request
+    if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
+      chrome.sidePanel.open({ windowId: message.windowId });
+    }
   });
 }
 
-//start monitoring on startup and install
+// Set up side panel behavior when extension is installed
+chrome.runtime.onInstalled.addListener(async () => {
+  // Do not open side panel on action click - use popup instead
+  await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
+  startClipboardMonitoring();
+});
+
+// Start monitoring on startup
 chrome.runtime.onStartup.addListener(startClipboardMonitoring);
-chrome.runtime.onInstalled.addListener(startClipboardMonitoring);
