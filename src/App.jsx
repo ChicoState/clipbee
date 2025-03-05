@@ -71,7 +71,7 @@ function App() {
         </div>
 
         <h4 className="font-semibold mt-4">Current Clipboard</h4>
-        <p className="p-2 bg-gray-100 rounded">{clipboardHistory[0]}</p>
+        <p className="p-2 bg-gray-100 rounded truncate">{clipboardHistory[0]}</p>
 
         {clipboardHistory.length - 1 > 0 &&
             <div className="clipboard-history mt-4">
