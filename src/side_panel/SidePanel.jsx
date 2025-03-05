@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import Dropzone from "../components/Dropzone.jsx";
 
 function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
+
+    function sendClearHistory() {
+        chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
+        setClipboardHistory(['']);
+    }
 
     useEffect(() => {
         // Get clipboard history from background script
@@ -53,6 +59,11 @@ function SidePanel() {
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold">Clipbee</h3>
                 <button
+                    onClick={sendClearHistory}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                    Clear History
+                </button>
+                <button
                     onClick={openPopup}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
                     Open Popup
@@ -62,6 +73,8 @@ function SidePanel() {
                 <h4 className="font-semibold mt-2">Current Clipboard</h4>
                 <p className="p-2 bg-gray-100 rounded truncate">{clipboardHistory[0]}</p>
             </div>
+
+            <Dropzone />
 
             <div className="mt-2">
                 <h3 className="text-lg font-semibold mb-2">Recent Clipboard Items</h3>
