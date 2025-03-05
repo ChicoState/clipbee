@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Clipboard } from "lucide-react";
 const ITEMSPERPAGE = 5;
 
 function App() {
@@ -63,7 +64,10 @@ function App() {
       <div className="h-auto w-[300px] bg-white shadow-lg">
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">Clipbee</h3>
+          <div className="flex items-center justify-between maw-w-1/2">
+            <Clipboard className="w-6 h-6 text-blue-500" />
+            <h3 className="text-xl font-bold">Clipbee</h3>
+          </div>
           <button
               onClick={openSidePanel}
               className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
@@ -90,13 +94,14 @@ function App() {
                           </li>
                       ))}
                     </ul>
-                    <div className="flex space-x-2 mt-4">
+                    <div className="flex space-x-2 mt-4 justify-between align-middle">
                       <button
                           onClick={() => setClipboardPage(clipboardPage - 1)}
                           disabled={clipboardPage === 0}
                           className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50">
                         Previous Page
                       </button>
+                        <span className="mt-1">Page {clipboardPage + 1}</span>
                       <button
                           onClick={() => setClipboardPage(clipboardPage + 1)}
                           disabled={clipboardHistory.length - 1 <= ((clipboardPage+1) * ITEMSPERPAGE)}
