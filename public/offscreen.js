@@ -1,5 +1,5 @@
 let pollingInterval;
-const POLLINGINTERVAL = 1000;
+const POLLINGINTERVAL = 5000;
 
 function checkClipboard() {
   //creates a textarea and pastes the clipboard content
