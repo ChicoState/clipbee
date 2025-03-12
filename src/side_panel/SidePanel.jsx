@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
+import { Search, Clock, ArrowUpDown } from "lucide-react";
 
 function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortOrder, setSortOrder] = useState('newest');
 
     function sendClearHistory() {
         chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
@@ -54,6 +57,40 @@ function SidePanel() {
         }
     };
 
+    const toggleSortOrder = () => {
+        setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest');
+    };
+
+    // Get current clipboard item (always the first item)
+    const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
+
+    // Get history items (all items except the first one)
+    const getHistoryItems = () => {
+        if (clipboardHistory.length <= 1) return [];
+        return clipboardHistory.slice(1);
+    };
+
+    // Filter and sort history items
+    const getFilteredSortedHistory = () => {
+        // Get all history items (excluding current clipboard)
+        const historyItems = getHistoryItems();
+
+        // Filter by search query
+        const filteredItems = historyItems.filter(item =>
+            item && item.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        // Apply sorting
+        if (sortOrder === 'oldest') {
+            return [...filteredItems].reverse();
+        }
+
+        return filteredItems;
+    };
+
+    const displayItems = getFilteredSortedHistory();
+    const totalFilteredItems = displayItems.length;
+
     return (
         <div className="p-1 w-auto h-full bg-white m-2">
             <div className="flex justify-between items-center mb-4">
@@ -71,16 +108,41 @@ function SidePanel() {
             </div>
             <div className="mb-4">
                 <h4 className="font-semibold mt-2">Current Clipboard</h4>
-                <p className="p-2 bg-gray-100 rounded truncate">{clipboardHistory[0]}</p>
+                <p className="p-2 bg-gray-100 rounded truncate">{currentClipboardItem}</p>
             </div>
 
             <Dropzone />
 
-            <div className="mt-2">
-                <h3 className="text-lg font-semibold mb-2">Recent Clipboard Items</h3>
-                {clipboardHistory.length > 0 ? (
+            <div className="mt-4">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-semibold">Clipboard History</h3>
+                    <button
+                        onClick={toggleSortOrder}
+                        className="flex items-center space-x-1 text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
+                        <Clock className="h-4 w-4" />
+                        <span>{sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
+                        <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                </div>
+
+                {/* Search and Filter Section */}
+                <div className="relative mb-3">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                    <input
+                        type="text"
+                        placeholder="Search clipboard history..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-8 pr-4 py-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+
+                <div className="text-sm text-gray-600 mb-2">
+                    {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found
+                </div>
+
+                {totalFilteredItems > 0 ? (
                     <ul className="space-y-2">
-                        {clipboardHistory.map((item, index) => (
+                        {displayItems.map((item, index) => (
                             <li
                                 key={index}
                                 className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
@@ -90,7 +152,11 @@ function SidePanel() {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-gray-500">No clipboard history yet</p>
+                    <p className="text-gray-500">
+                        {getHistoryItems().length === 0
+                            ? "No clipboard history yet"
+                            : "No matching clipboard items found"}
+                    </p>
                 )}
             </div>
         </div>
