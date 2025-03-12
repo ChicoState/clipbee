@@ -92,7 +92,11 @@ function SidePanel() {
     const totalFilteredItems = displayItems.length;
 
     return (
-        <div className="p-1 w-auto h-full bg-white m-2">
+        <div className="relative p-1 w-auto h-full bg-yellow-100 m-2 rounded-lg border border-gray-400 shadow-lg">
+        {/* Clipboard Clip */}
+        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-12 h-5 bg-gray-600 rounded-b-lg flex justify-center items-center">
+            <div className="w-8 h-3 bg-gray-500 rounded-b-lg"></div>
+        </div>
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold">Clipbee</h3>
                 <button
