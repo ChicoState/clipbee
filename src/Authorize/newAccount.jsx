@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Clipboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword,onAuthStateChanged,browserLocalPersistence } from 'firebase/auth';
 import { app }from '../firebaseConfig'; 
 
 const auth = getAuth(app);
@@ -11,6 +11,25 @@ const NewAccount = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');   
     const navigate = useNavigate();
+
+    useEffect(() => {
+          auth.setPersistence(browserLocalPersistence)
+            .then(() => {
+              // Listen to auth state changes
+              onAuthStateChanged(auth, (user) => {
+                if (user) {
+                  chrome.runtime.sendMessage({
+                    type: 'SIGN_IN'
+                });
+                  // Redirect to home if the user is already logged in
+                  navigate('/main'); 
+                }
+              });
+            })
+            .catch((error) => {
+              console.error('Error setting persistence:', error);
+            });
+        }, [navigate]);
 
     const createUserWithEmailPassword = async (e) => {
         e.preventDefault();
