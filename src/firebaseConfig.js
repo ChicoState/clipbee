@@ -5,7 +5,7 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 
 // replace with actual Firebase config from Firebase Console
 const firebaseConfig = {
-    apiKey: "",
+    apiKey: "AIzaSyBIQx1Zy4vaRXrqvqbhDp402TW-oNFOLE8",
     authDomain: "clipbee-ed0bd.firebaseapp.com",
     projectId: "clipbee-ed0bd",
     storageBucket: "clipbee-ed0bd.firebasestorage.app",
@@ -14,8 +14,11 @@ const firebaseConfig = {
     measurementId: "G-MW614B5GRB"
 };
 
-// init Firebase
+// initate Firebase
 const app = initializeApp(firebaseConfig);
+//Intiate firestore for storage
+//const firestore = firebase.firestore();
+
 
 // Only initialize analytics if supported in this environment
 let analytics = null;
@@ -31,4 +34,4 @@ isSupported().then(supported => {
 
 const db = getFirestore(app);
 
-export { db, doc, setDoc, getDoc, onSnapshot };
+export { app,db,setDoc,getDoc,onSnapshot,doc};
