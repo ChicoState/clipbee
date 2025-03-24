@@ -6,6 +6,7 @@ function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState('newest');
+    const [isSignedIn, setIsSignedIn] = useState(true);
 
     function sendClearHistory() {
         chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
@@ -24,6 +25,14 @@ function SidePanel() {
             if (message.type === 'CLIPBOARD_HISTORY') {
                 setClipboardHistory(message.data);
             }
+            //Listner for signing out
+            // if (message.type === 'SIGN_OUT') { 
+            //     setIsSignedIn(false); 
+            // }
+            // //Listener for signing in 
+            // if (message.type === 'SIGN_IN') {
+            //     setIsSignedIn(true); 
+            // }
         };
 
         chrome.runtime.onMessage.addListener(messageListener);
@@ -90,6 +99,11 @@ function SidePanel() {
 
     const displayItems = getFilteredSortedHistory();
     const totalFilteredItems = displayItems.length;
+
+    //  if (!isSignedIn) {
+    //     return null; // Return null to close the side panel when signed out
+
+    // }
 
     return (
         <div className="relative p-1 w-auto h-full bg-yellow-100 m-2 rounded-lg border border-gray-400 shadow-lg">

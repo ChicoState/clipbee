@@ -9,6 +9,8 @@ async function createOffscreenDocument() {
   });
 }
 
+
+
 async function startClipboardMonitoring() {
   await createOffscreenDocument();
   // Send message to offscreen document to start monitoring
@@ -46,6 +48,39 @@ async function startClipboardMonitoring() {
     }
   });
 }
+
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  console.log("Message received in background:", message);
+  
+  if (message.target === 'service-worker') {
+    if (message.action === 'CLOSE_SIDEPANEL') {
+     
+      try {
+        // Disable side panel for the current window
+        await chrome.sidePanel.setOptions({
+          path: "sidepanel.html",
+          enabled: false
+        });
+        console.log("Side panel closed");
+      } catch (error) {
+        console.error("Failed to close side panel:", error);
+      }
+    }
+    if (message.action === 'OPEN_SIDEPANEL') {
+      try {
+        // Re-register side panel path and enable it
+        await chrome.sidePanel.setOptions({
+          path: "sidepanel.html", 
+          enabled: true
+        });
+        //await chrome.sidePanel.open({ windowId: message.windowId });
+        console.log("Side panel opened");
+      } catch (error) {
+        console.error("Failed to open side panel:", error);
+      }
+    }
+  }
+});
 
 // Set up side panel behavior when extension is installed
 chrome.runtime.onInstalled.addListener(async () => {
