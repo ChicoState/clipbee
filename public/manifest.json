@@ -11,7 +11,13 @@
         "storage",
         "offscreen",
         "clipboardRead",
-        "sidePanel"
+        "sidePanel",
+        "scripting",
+        "activeTab",
+        "commands"
+    ],
+    "host_permissions": [
+        "<all_urls>"
     ],
     "background": {
         "service_worker": "background.js",
@@ -33,5 +39,20 @@
                 "<all_urls>"
             ]
         }
-    ]
+    ],
+    "commands": {
+        "_execute_action": {
+            "suggested_key": {
+                "default": "Ctrl+Period",
+                "mac": "Command+Period"
+            }
+        },
+        "open-sidepanel": {
+            "description": "Open the side panel",
+            "suggested_key": {
+                "default": "Ctrl+Shift+Period",
+                "mac": "Command+Shift+Period"
+            }
+        }
+    }
 }
