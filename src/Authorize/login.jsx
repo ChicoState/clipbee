@@ -10,6 +10,7 @@ const auth = getAuth(app);
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -36,7 +37,7 @@ const Login = () => {
     const signInWithEmailPassword = async (e) => {
       e.preventDefault();
       if (!email || !password) {
-        alert('Please provide email and password');
+        setError('Please provide email and password');
         return;
       }
       try {
@@ -46,7 +47,7 @@ const Login = () => {
           navigate('/main');
          } catch (error) {
           console.error('Error signing in:', error.message);
-          alert('Failed to log in. Please check your credentials.');
+          setError('Failed to log in. Please check your credentials.');
         }
     };
 
@@ -60,6 +61,11 @@ const Login = () => {
                   <h3 className="text-xl font-bold">Clipbee</h3>
                 </div>
               </div>
+                {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <span className="block sm:inline">{error}</span>
+                    </div>
+                )}
               <form onSubmit={signInWithEmailPassword}>
                 <input 
                   type="email" 
@@ -82,7 +88,7 @@ const Login = () => {
                 </button>
               </form>
               <p className="text-sm text-center mt-3">
-                Don't have an account? 
+                Don&#39;t have an account?
                 <span 
                   onClick={() => navigate('/newAccount')} 
                   className="text-blue-500 hover:underline cursor-pointer ml-1"
