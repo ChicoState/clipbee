@@ -27,7 +27,7 @@ const NewAccount = () => {
               });
             })
             .catch((error) => {
-              console.error('Error setting persistence:', error);
+              console.error('Error setting:', error);
             });
         }, [navigate]);
 
@@ -62,7 +62,11 @@ const NewAccount = () => {
             <h3 className="text-xl font-bold">Clipbee</h3>
           </div>
         </div>
-        {error && <p className="error">{error}</p>}
+          {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <span className="block sm:inline">{error}</span>
+              </div>
+          )}
         <form onSubmit={createUserWithEmailPassword}>
           <input
             type="email"
