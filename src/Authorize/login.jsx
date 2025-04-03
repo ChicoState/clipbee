@@ -1,9 +1,11 @@
 import React, { useState,useEffect } from 'react';
-import { Clipboard} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword,onAuthStateChanged,browserLocalPersistence } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
-import { app }from '../firebaseConfig'; 
+
+import { app }from '../firebaseConfig';
+import Header from '../components/Header.jsx'
+
 
 const auth = getAuth(app);
 
@@ -55,10 +57,7 @@ const Login = () => {
           <div className="h-auto w-[300px] bg-white shadow-lg">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center justify-between maw-w-1/2">
-                  <Clipboard className="w-6 h-6 text-blue-500" />
-                  <h3 className="text-xl font-bold">Clipbee</h3>
-                </div>
+                <Header />
               </div>
               <form onSubmit={signInWithEmailPassword}>
                 <input 
