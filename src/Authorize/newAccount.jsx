@@ -29,7 +29,7 @@ const NewAccount = () => {
               });
             })
             .catch((error) => {
-              console.error('Error setting persistence:', error);
+              console.error('Error setting:', error);
             });
         }, [navigate]);
 
