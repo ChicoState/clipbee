@@ -4,6 +4,7 @@ import { getAuth, createUserWithEmailAndPassword,onAuthStateChanged,browserLocal
 
 import { app }from '../firebaseConfig';
 import Header from '../components/Header.jsx'
+import Background from "../components/Background.jsx";
 
 const auth = getAuth(app);
 
@@ -55,19 +56,23 @@ const NewAccount = () => {
       };
 
   return (
-    <div className="h-auto w-[300px] bg-white shadow-lg">
-      <div className="p-4">
+    <Background>
         <div className="flex justify-between items-center mb-4">
           <Header />
         </div>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={createUserWithEmailPassword}>
+      {error && (
+      <div className="bg-red-100 text-red-700 p-4 rounded mb-4 border border-red-400">
+        {error}
+      </div>
+      )}
+        <form onSubmit={createUserWithEmailPassword} className="flex flex-col items-center justify-center">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="p-2 mb-2 border border-gray-300 rounded"
           />
           <input
             type="password"
@@ -75,9 +80,10 @@ const NewAccount = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="p-2 mb-2 border border-gray-300 rounded"
           />
           <button type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 border border-blue-700 rounded">
             Create Account
           </button>
         </form>
@@ -90,8 +96,8 @@ const NewAccount = () => {
             Login here
           </span>
         </p>
-      </div>
-    </div>
+    </Background>
   );
 }
+
 export default NewAccount;

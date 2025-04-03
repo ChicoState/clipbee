@@ -5,6 +5,7 @@ import { getAuth,signOut } from 'firebase/auth';
 
 import { app }from './firebaseConfig';
 import Header from './components/Header.jsx'
+import Background from "./components/Background.jsx";
 
 const ITEMSPERPAGE = 5;
 
@@ -160,12 +161,7 @@ const Main = () => {
   const totalFilteredItems = getFilteredAndSortedHistory().length;
 
   return (
-    <div className="h-auto w-[320px] bg-yellow-100 shadow-lg rounded-lg border border-gray-300 relative">
-    <div className="w-full h-6 bg-gray-700 rounded-t-lg flex justify-center items-center">
-      <div className="w-12 h-4 bg-gray-500 rounded-b-lg">
-      </div>
-      </div>
-      <div className="p-4">
+    <Background>
         <div className="flex justify-between items-center mb-4">
           <Header />
           <button
@@ -259,8 +255,7 @@ const Main = () => {
                 </button>
             )}
         </div>
-      </div>
-    </div>
+    </Background>
   );
 }
 

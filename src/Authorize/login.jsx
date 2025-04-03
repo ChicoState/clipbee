@@ -5,6 +5,7 @@ import { getAuth } from 'firebase/auth';
 
 import { app }from '../firebaseConfig';
 import Header from '../components/Header.jsx'
+import Background from "../components/Background.jsx";
 
 
 const auth = getAuth(app);
@@ -12,6 +13,7 @@ const auth = getAuth(app);
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,7 +40,7 @@ const Login = () => {
     const signInWithEmailPassword = async (e) => {
       e.preventDefault();
       if (!email || !password) {
-        alert('Please provide email and password');
+        setError('Please provide email and password');
         return;
       }
       try {
@@ -48,40 +50,45 @@ const Login = () => {
           navigate('/main');
          } catch (error) {
           console.error('Error signing in:', error.message);
-          alert('Failed to log in. Please check your credentials.');
+          setError('Failed to login. Please check your credentials.');
         }
     };
 
         return (
-        <div>
-          <div className="h-auto w-[300px] bg-white shadow-lg">
-            <div className="p-4">
+        <Background>
               <div className="flex justify-between items-center mb-4">
                 <Header />
               </div>
-              <form onSubmit={signInWithEmailPassword}>
+          {error && (
+            <div className="bg-red-100 text-red-700 p-4 rounded mb-4 border border-red-400">
+              {error}
+            </div>
+          )}
+              <form onSubmit={signInWithEmailPassword} className="flex flex-col items-center justify-center">
                 <input 
                   type="email" 
                   placeholder="Email" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
-                  required 
+                  required
+                  className="p-2 mb-2 border border-gray-300 rounded"
                 />
                 <input 
                 type="password" 
                 placeholder="Password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
-                required 
+                required
+                className="p-2 mb-2 border border-gray-300 rounded"
                 />
                 <button 
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 border border-blue-700 rounded">
                 Log In
                 </button>
               </form>
               <p className="text-sm text-center mt-3">
-                Don't have an account? 
+                Don&#39;t have an account?
                 <span 
                   onClick={() => navigate('/newAccount')} 
                   className="text-blue-500 hover:underline cursor-pointer ml-1"
@@ -89,9 +96,7 @@ const Login = () => {
                   Create Account
                 </span>
               </p>
-            </div>
-          </div>
-        </div>
+        </Background>
       );
 }
 export default Login;
