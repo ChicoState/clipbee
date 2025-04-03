@@ -39,6 +39,7 @@ const Login = () => {
     //Sign in user using email and password
     const signInWithEmailPassword = async (e) => {
       e.preventDefault();
+      setError('');
       if (!email || !password) {
         setError('Please provide email and password');
         return;
@@ -50,7 +51,7 @@ const Login = () => {
           navigate('/main');
          } catch (error) {
           console.error('Error signing in:', error.message);
-          setError('Failed to login. Please check your credentials.');
+          setError('Failed to log in. Please check your credentials.');
         }
     };
 
@@ -59,11 +60,11 @@ const Login = () => {
               <div className="flex justify-between items-center mb-4">
                 <Header />
               </div>
-          {error && (
-            <div className="bg-red-100 text-red-700 p-4 rounded mb-4 border border-red-400">
-              {error}
-            </div>
-          )}
+              {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span className="block sm:inline">{error}</span>
+              </div>
+              )}
               <form onSubmit={signInWithEmailPassword} className="flex flex-col items-center justify-center">
                 <input 
                   type="email" 
@@ -71,7 +72,7 @@ const Login = () => {
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required
-                  className="p-2 mb-2 border border-gray-300 rounded"
+                  className="p-2 mb-2 border bg-white hover:bg-gray-100 border-gray-300 rounded"
                 />
                 <input 
                 type="password" 
@@ -79,7 +80,7 @@ const Login = () => {
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required
-                className="p-2 mb-2 border border-gray-300 rounded"
+                className="p-2 mb-2 border bg-white hover:bg-gray-100 border-gray-300 rounded"
                 />
                 <button 
                 type="submit"

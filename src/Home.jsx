@@ -145,7 +145,7 @@ const Main = () => {
               windowId: currentWindow.id
             });
              //Send user back to start page
-             navigate('/start');
+             navigate('/login');
           } catch (error) {
             console.error("Error signing out:", error);
           }

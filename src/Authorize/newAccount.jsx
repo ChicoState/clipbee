@@ -11,7 +11,7 @@ const auth = getAuth(app);
 const NewAccount = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');   
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,7 +51,7 @@ const NewAccount = () => {
           navigate('/Login')
         } catch (error) {
           console.error('Error Creating Account:', error.message);
-          alert('Failed to create account.');
+          setError('Failed to create account.');
         }
       };
 
@@ -60,11 +60,11 @@ const NewAccount = () => {
         <div className="flex justify-between items-center mb-4">
           <Header />
         </div>
-      {error && (
-      <div className="bg-red-100 text-red-700 p-4 rounded mb-4 border border-red-400">
-        {error}
-      </div>
-      )}
+        {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <span className="block sm:inline">{error}</span>
+        </div>
+        )}
         <form onSubmit={createUserWithEmailPassword} className="flex flex-col items-center justify-center">
           <input
             type="email"
@@ -72,7 +72,7 @@ const NewAccount = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="p-2 mb-2 border border-gray-300 rounded"
+            className="p-2 mb-2 border bg-white hover:bg-gray-100 border-gray-300 rounded"
           />
           <input
             type="password"
@@ -80,7 +80,7 @@ const NewAccount = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="p-2 mb-2 border border-gray-300 rounded"
+            className="p-2 mb-2 border bg-white hover:bg-gray-100 border-gray-300 rounded"
           />
           <button type="submit"
                   className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 border border-blue-700 rounded">
