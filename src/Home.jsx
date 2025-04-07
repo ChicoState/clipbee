@@ -14,34 +14,60 @@ const Main = () => {
   const [clipboardPage, setClipboardPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
+  const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  
+  const [activeFolder, setActiveFolder] = useState("Default");   
 
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
-    setClipboardHistory(['']);
+    setClipboardHistory([]);
   }
 
   useEffect(() => {
-    //on load get current clipboard content
-    chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLIPBOARD_HISTORY_REACT_LOAD' });
-    // listen for messages from service worker
+    // Load clipboard history for the active folder
+    chrome.runtime.sendMessage({ action: 'GET_CLIPBOARD_HISTORY' }, (response) => {
+        setClipboardHistory(response.history || []);
+    });
+
+    // Load folders on initialization
+    chrome.runtime.sendMessage({ action: 'GET_FOLDERS' }, (response) => {
+        setFolders(response.folders.map(folder => ({ name: folder })));
+    });
+
+    // Listen for clipboard and folder updates from the background script
     const messageListener = (message) => {
-      if (message.type === 'CLIPBOARD_CURRENT') {
-        setClipboardContent(message.data);
-      }
-      if (message.type === 'CLIPBOARD_HISTORY') {
-        setClipboardHistory(message.data);
-      }
+        if (message.type === 'CLIPBOARD_HISTORY') {
+            setClipboardHistory(message.data);
+        }
+        if (message.type === 'FOLDER_UPDATE') {
+            setFolders(message.folders.map(folder => ({ name: folder })));
+        }
     };
     chrome.runtime.onMessage.addListener(messageListener);
 
     // Clean up listener on unmount
     return () => {
-      chrome.runtime.onMessage.removeListener(messageListener);
+        chrome.runtime.onMessage.removeListener(messageListener);
     };
-  }, []);
+}, [activeFolder]);
 
-  
-
+  // Set the active folder and load its history
+  const changeFolder = (folder) => {
+    setActiveFolder(folder);
+    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder });
+  };
+  const handleAddFolder = () => {
+    const name = prompt("Enter new folder name:");
+    if (!name) return;
+    if (folders.some(f => f.name === name)) {
+      alert("Folder already exists!");
+      return;
+    }
+    chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }, () => {
+      setFolders((prev) => [...prev, { name }]);
+      changeFolder(name);
+    });
+  };
+   
   // Function to open the side panel
   const openSidePanel = async () => {
     try {
@@ -158,108 +184,136 @@ const Main = () => {
 
   return (
     <div className="h-auto w-[320px] bg-yellow-100 shadow-lg rounded-lg border border-gray-300 relative">
-    <div className="w-full h-6 bg-gray-700 rounded-t-lg flex justify-center items-center">
-      <div className="w-12 h-4 bg-gray-500 rounded-b-lg">
-      </div>
-      </div>
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center justify-between max-w-1/2">
-            <Clipboard className="w-6 h-6 text-blue-500" />
-            <h3 className="text-xl font-bold">Clipbee</h3>
-          </div>
-          <button
-              onClick={openSidePanel}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-            Side Panel
-          </button>
-          <button
-            onClick = {handleSignOut}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-            Sign Out
-          </button>
+        <div className="w-full h-6 bg-gray-700 rounded-t-lg flex justify-center items-center">
+            <div className="w-12 h-4 bg-gray-500 rounded-b-lg"></div>
         </div>
-
-        <h4 className="font-semibold mt-4">Current Clipboard</h4>
-          <div className="p-2 bg-gray-100 rounded">
-            <p className="truncate">{currentClipboardItem}</p>
-          </div>
-
-          <div className="clipboard-history mt-4">
-            <div className="flex justify-between items-center">
-              <h4 className="font-semibold">Clipboard History</h4>
-              <button
-                  onClick={toggleSortOrder}
-                  className="flex items-center space-x-1 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
-                <Clock className="h-3 w-3" />
-                <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-                <ArrowUpDown className="h-3 w-3" />
-              </button>
+        <div className="p-4">
+            {/* Top Section */}
+            <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center justify-between max-w-1/2">
+                    <Clipboard className="w-6 h-6 text-blue-500" />
+                    <h3 className="text-xl font-bold">Clipbee</h3>
+                </div>
+                <div className="space-x-2">
+                    <button
+                        onClick={openSidePanel}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                        Open Side Panel
+                    </button>
+                    <button
+                        onClick={handleSignOut}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                        Sign Out
+                    </button>
+                </div>
             </div>
 
-            {/* Search Input */}
-            <div className="relative mt-2">
-              <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-500" />
-              <input
-                  type="text"
-                  placeholder="Search clipboard history..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-7 pr-4 py-1.5 w-full text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"/>
-            </div>
-
-            <div className="text-xs text-gray-600 mt-1 mb-2">
-              {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found
-            </div>
-
-            {totalFilteredItems > 0 ? (
-                <>
-                  <ul className="mt-2 space-y-2">
-                    {displayItems.map((item, index) => (
-                        <li
-                            key={index}
-                            onClick={() => copyToClipboard(item)}
-                            className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">
-                          <div className="truncate">{item}</div>
-                        </li>
-                    ))}
-                  </ul>
-
-                  {totalPages > 1 && (
-                      <div className="flex space-x-2 mt-4 justify-between items-center">
-                        <button
-                            onClick={handlePreviousPage}
-                            disabled={clipboardPage === 0}
-                            className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
-                          Previous
-                        </button>
-                        <span className="text-sm">
-                          Page {clipboardPage + 1} of {totalPages}
-                        </span>
-                        <button
-                            onClick={handleNextPage}
-                            disabled={clipboardPage + 1 >= totalPages}
-                            className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
-                          Next
-                        </button>
-                      </div>
-                  )}
-                </>
-            ) : (
-                <p className="text-sm text-gray-500 mt-2">
-                  {getHistoryItems().length === 0 ? "No clipboard history yet" : "No matching clipboard items found"}
-                </p>
-            )}
-
-            {getHistoryItems().length > 0 && (
+            {/* Folder Selector */}
+            <div className="mt-2 flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                    <label className="text-sm font-semibold">Folder:</label>
+                    <select
+                        value={activeFolder}
+                        onChange={(e) => changeFolder(e.target.value)}
+                        className="text-sm border border-gray-300 rounded bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                        {folders.map((folder, index) => (
+                            <option key={index} value={folder.name}>{folder.name}</option>
+                        ))}
+                    </select>
+                </div>
                 <button
-                    onClick={sendClearHistory}
-                    className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                  Clear History
+                    onClick={handleAddFolder}
+                    className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+                    + Add Folder
                 </button>
-            )}
+            </div>
+
+            {/* Current Clipboard */}
+            <h4 className="font-semibold mt-4">Current Clipboard</h4>
+            <div className="p-2 bg-gray-100 rounded">
+                <p className="truncate">{currentClipboardItem}</p>
+            </div>
+
+            {/* Clipboard History */}
+            <div className="clipboard-history mt-4">
+                <div className="flex justify-between items-center">
+                    <h4 className="font-semibold">Clipboard History</h4>
+                    <button
+                        onClick={toggleSortOrder}
+                        className="flex items-center space-x-1 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
+                        <Clock className="h-3 w-3" />
+                        <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                        <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative mt-2">
+                    <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-500" />
+                    <input
+                        type="text"
+                        placeholder="Search clipboard history..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-7 pr-4 py-1.5 w-full text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div className="text-xs text-gray-600 mt-1 mb-2">
+                    {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found
+                </div>
+
+                {displayItems.length > 0 ? (
+                    <>
+                        <ul className="mt-2 space-y-2">
+                            {displayItems.map((item, index) => (
+                                <li
+                                    key={index}
+                                    onClick={() => copyToClipboard(item)}
+                                    className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
+                                >
+                                    <div className="truncate">{item}</div>
+                                </li>
+                            ))}
+                        </ul>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-between items-center mt-4">
+                                <button
+                                    onClick={handlePreviousPage}
+                                    disabled={clipboardPage === 0}
+                                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
+                                    Previous
+                                </button>
+                                <span className="text-sm">
+                                    Page {clipboardPage + 1} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={handleNextPage}
+                                    disabled={clipboardPage + 1 >= totalPages}
+                                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <p className="text-sm text-gray-500 mt-2">
+                        {getHistoryItems().length === 0 ? "No clipboard history yet" : "No matching clipboard items found"}
+                    </p>
+                )}
+
+                {getHistoryItems().length > 0 && (
+                    <button
+                        onClick={sendClearHistory}
+                        className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                        Clear History
+                    </button>
+                )}
+            </div>
         </div>
-      </div>
     </div>
   );
 }
