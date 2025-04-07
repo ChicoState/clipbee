@@ -1,3 +1,6 @@
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "./firebaseConfig.js";
+
 let clipboardHistory = [];
 
 async function createOffscreenDocument() {
@@ -22,6 +25,16 @@ async function startClipboardMonitoring() {
         clipboardHistory.unshift(clipboardText);
         console.log('Clipboard data changed:', clipboardText);
         //add firebase storage here i think
+        addDoc(collection(db, "clipboardEntries"), {
+          content: clipboardText,
+          timestamp: serverTimestamp()
+        })
+        .then(docRef => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch(error => {
+          console.error("Error adding document: ", error);
+        });
       }
       //send to react history
       chrome.runtime.sendMessage({
