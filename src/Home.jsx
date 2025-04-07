@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Clipboard,Search, Clock, ArrowUpDown } from 'lucide-react';
+import { Search, Clock, ArrowUpDown } from 'lucide-react';
 import {useNavigate } from 'react-router-dom';
 import { getAuth,signOut } from 'firebase/auth';
-import { app }from './firebaseConfig'; 
+
+import { app }from './firebaseConfig';
+import Header from './components/Header.jsx'
+import Background from "./components/Background.jsx";
+
 const ITEMSPERPAGE = 5;
 
 const auth = getAuth(app);
@@ -167,7 +171,7 @@ const Main = () => {
               windowId: currentWindow.id
             });
              //Send user back to start page
-             navigate('/start');
+             navigate('/login');
           } catch (error) {
             console.error("Error signing out:", error);
           }
@@ -183,139 +187,108 @@ const Main = () => {
   const totalFilteredItems = getFilteredAndSortedHistory().length;
 
   return (
-    <div className="h-auto w-[320px] bg-yellow-100 shadow-lg rounded-lg border border-gray-300 relative">
-        <div className="w-full h-6 bg-gray-700 rounded-t-lg flex justify-center items-center">
-            <div className="w-12 h-4 bg-gray-500 rounded-b-lg"></div>
+    <Background>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-2">
+          <h3 className="text-xl font-bold">Clipbee</h3>
         </div>
-        <div className="p-4">
-            {/* Top Section */}
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center justify-between max-w-1/2">
-                    <Clipboard className="w-6 h-6 text-blue-500" />
-                    <h3 className="text-xl font-bold">Clipbee</h3>
-                </div>
-                <div className="space-x-2">
-                    <button
-                        onClick={openSidePanel}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-                        Open Side Panel
-                    </button>
-                    <button
-                        onClick={handleSignOut}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                        Sign Out
-                    </button>
-                </div>
-            </div>
-
-            {/* Folder Selector */}
-            <div className="mt-2 flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                    <label className="text-sm font-semibold">Folder:</label>
-                    <select
-                        value={activeFolder}
-                        onChange={(e) => changeFolder(e.target.value)}
-                        className="text-sm border border-gray-300 rounded bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                        {folders.map((folder, index) => (
-                            <option key={index} value={folder.name}>{folder.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <button
-                    onClick={handleAddFolder}
-                    className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
-                    + Add Folder
-                </button>
-            </div>
-
-            {/* Current Clipboard */}
-            <h4 className="font-semibold mt-4">Current Clipboard</h4>
-            <div className="p-2 bg-gray-100 rounded">
-                <p className="truncate">{currentClipboardItem}</p>
-            </div>
-
-            {/* Clipboard History */}
-            <div className="clipboard-history mt-4">
-                <div className="flex justify-between items-center">
-                    <h4 className="font-semibold">Clipboard History</h4>
-                    <button
-                        onClick={toggleSortOrder}
-                        className="flex items-center space-x-1 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
-                        <Clock className="h-3 w-3" />
-                        <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-                        <ArrowUpDown className="h-3 w-3" />
-                    </button>
-                </div>
-
-                {/* Search Input */}
-                <div className="relative mt-2">
-                    <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-500" />
-                    <input
-                        type="text"
-                        placeholder="Search clipboard history..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-7 pr-4 py-1.5 w-full text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                </div>
-
-                <div className="text-xs text-gray-600 mt-1 mb-2">
-                    {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found
-                </div>
-
-                {displayItems.length > 0 ? (
-                    <>
-                        <ul className="mt-2 space-y-2">
-                            {displayItems.map((item, index) => (
-                                <li
-                                    key={index}
-                                    onClick={() => copyToClipboard(item)}
-                                    className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
-                                >
-                                    <div className="truncate">{item}</div>
-                                </li>
-                            ))}
-                        </ul>
-
-                        {/* Pagination Controls */}
-                        {totalPages > 1 && (
-                            <div className="flex justify-between items-center mt-4">
-                                <button
-                                    onClick={handlePreviousPage}
-                                    disabled={clipboardPage === 0}
-                                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
-                                    Previous
-                                </button>
-                                <span className="text-sm">
-                                    Page {clipboardPage + 1} of {totalPages}
-                                </span>
-                                <button
-                                    onClick={handleNextPage}
-                                    disabled={clipboardPage + 1 >= totalPages}
-                                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
-                                    Next
-                                </button>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <p className="text-sm text-gray-500 mt-2">
-                        {getHistoryItems().length === 0 ? "No clipboard history yet" : "No matching clipboard items found"}
-                    </p>
-                )}
-
-                {getHistoryItems().length > 0 && (
-                    <button
-                        onClick={sendClearHistory}
-                        className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                        Clear History
-                    </button>
-                )}
-            </div>
+        <div className="space-x-2">
+          <button
+            onClick={openSidePanel}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+            Open Side Panel
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+            Sign Out
+          </button>
         </div>
-    </div>
+      </div>
+  
+      {/* Folder Selector */}
+      <div className="mt-2 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-semibold">Folder:</label>
+          <select
+            value={activeFolder}
+            onChange={(e) => changeFolder(e.target.value)}
+            className="text-sm border border-gray-300 rounded bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            {folders.map((folder, index) => (
+              <option key={index} value={folder.name}>{folder.name}</option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={handleAddFolder}
+          className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+          + Add Folder
+        </button>
+      </div>
+  
+      {/* Current Clipboard */}
+      <h4 className="font-semibold mt-4">Current Clipboard</h4>
+      <div className="p-2 bg-gray-100 rounded">
+        <p className="truncate">{currentClipboardItem}</p>
+      </div>
+  
+      {/* Clipboard History */}
+      <div className="clipboard-history mt-4">
+        <div className="flex justify-between items-center">
+          <h4 className="font-semibold">Clipboard History</h4>
+          <button
+            onClick={toggleSortOrder}
+            className="flex items-center space-x-1 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
+            <Clock className="h-3 w-3" />
+            <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+            <ArrowUpDown className="h-3 w-3" />
+          </button>
+        </div>
+  
+        {/* Search Input */}
+        <div className="relative mt-2">
+          <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search clipboard history..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-7 pr-4 py-1.5 w-full text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+  
+        <div className="text-xs text-gray-600 mt-1 mb-2">
+          {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found
+        </div>
+  
+        {displayItems.length > 0 ? (
+          <ul className="mt-2 space-y-2">
+            {displayItems.map((item, index) => (
+              <li
+                key={index}
+                onClick={() => copyToClipboard(item)}
+                className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">
+                <div className="truncate">{item}</div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-500 mt-2">
+            {getHistoryItems().length === 0 ? "No clipboard history yet" : "No matching clipboard items found"}
+          </p>
+        )}
+  
+        {getHistoryItems().length > 0 && (
+          <button
+            onClick={sendClearHistory}
+            className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+            Clear History
+          </button>
+        )}
+      </div>
+    </Background>
   );
-}
+}  
 
 export default Main;
