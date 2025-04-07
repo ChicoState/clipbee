@@ -1,15 +1,17 @@
 import React, { useState,useEffect } from 'react';
-import { Clipboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, createUserWithEmailAndPassword,onAuthStateChanged,browserLocalPersistence } from 'firebase/auth';
-import { app }from '../firebaseConfig'; 
+
+import { app }from '../firebaseConfig';
+import Header from '../components/Header.jsx'
+import Background from "../components/Background.jsx";
 
 const auth = getAuth(app);
 
 const NewAccount = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');   
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -49,31 +51,28 @@ const NewAccount = () => {
           navigate('/Login')
         } catch (error) {
           console.error('Error Creating Account:', error.message);
-          alert('Failed to create account.');
+          setError('Failed to create account.');
         }
       };
 
   return (
-    <div className="h-auto w-[300px] bg-white shadow-lg">
-      <div className="p-4">
+    <Background>
         <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center justify-between maw-w-1/2">
-            <Clipboard className="w-6 h-6 text-blue-500" />
-            <h3 className="text-xl font-bold">Clipbee</h3>
-          </div>
+          <Header />
         </div>
-          {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                  <span className="block sm:inline">{error}</span>
-              </div>
-          )}
-        <form onSubmit={createUserWithEmailPassword}>
+        {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <span className="block sm:inline">{error}</span>
+        </div>
+        )}
+        <form onSubmit={createUserWithEmailPassword} className="flex flex-col items-center justify-center">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="p-2 mb-2 border bg-white hover:bg-gray-100 border-gray-300 rounded"
           />
           <input
             type="password"
@@ -81,9 +80,10 @@ const NewAccount = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="p-2 mb-2 border bg-white hover:bg-gray-100 border-gray-300 rounded"
           />
           <button type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 border border-blue-700 rounded">
             Create Account
           </button>
         </form>
@@ -96,8 +96,8 @@ const NewAccount = () => {
             Login here
           </span>
         </p>
-      </div>
-    </div>
+    </Background>
   );
 }
+
 export default NewAccount;
