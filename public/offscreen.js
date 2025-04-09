@@ -19,11 +19,23 @@ function checkClipboard() {
   });
 }
 
+function copyToLocalClipboard(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
 //listen for messages from service worker to start monitoring
 chrome.runtime.onMessage.addListener((message) => {
   if (message.target === 'offscreen' && message.action === 'START_MONITORING') {
     if (pollingInterval) clearInterval(pollingInterval);
     pollingInterval = setInterval(checkClipboard, POLLINGINTERVAL);
     checkClipboard();
+  }
+  if (message.target === 'offscreen' && message.action === 'CONTEXT_MENU_ITEM_TO_CLIPBOARD') {
+    copyToLocalClipboard(message.data);
   }
 });
