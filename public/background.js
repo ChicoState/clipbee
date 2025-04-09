@@ -1,5 +1,3 @@
-//import { MessageCircleOff } from "lucide-react";
-
 let clipboardHistory = {
   Default: [],
 };
@@ -16,6 +14,21 @@ async function createOffscreenDocument() {
 }
 
 
+function addClipboardData(clipboardText) {
+  //folder integration
+  if (!clipboardHistory[activeFolder]) {
+    clipboardHistory[activeFolder] = [];
+  }
+  if (clipboardHistory[activeFolder].length === 0 || clipboardText !== clipboardHistory[activeFolder][0]) {
+    clipboardHistory[activeFolder].unshift(clipboardText);
+    console.log(`[${activeFolder}] Clipboard data changed: `, clipboardText);
+  }
+  //send to react history
+  chrome.runtime.sendMessage({
+    type: 'CLIPBOARD_HISTORY',
+    data: clipboardHistory[activeFolder]
+  });
+}
 
 async function startClipboardMonitoring() {
   await createOffscreenDocument();
@@ -25,22 +38,7 @@ async function startClipboardMonitoring() {
   chrome.runtime.onMessage.addListener((message) => {
     // handle clipboard data from offscreen document
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_DATA') {
-      const clipboardText = message.data;
-      //folder integration
-      if (!clipboardHistory[activeFolder]) {
-        clipboardHistory[activeFolder] = [];
-        //console.log('Clipboard data changed:', clipboardText);
-        //add firebase storage here i think
-      }
-      if (clipboardHistory[activeFolder].length === 0 || clipboardText !== clipboardHistory[activeFolder][0]) {
-        clipboardHistory[activeFolder].unshift(clipboardText);
-        console.log(`[${activeFolder}] Clipboard data changed: `, clipboardText);
-      }
-      //send to react history
-      chrome.runtime.sendMessage({
-        type: 'CLIPBOARD_HISTORY',
-        data: clipboardHistory[activeFolder]
-      });
+      addClipboardData(message.data);
     }
     // handle clear history from react
     if (message.target === 'service-worker' && message.action === 'CLEAR_HISTORY') {
@@ -64,6 +62,7 @@ async function startClipboardMonitoring() {
         console.log(`Folder created: ${folderName}`);
       }
       chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory) });
+      createAllContextMenus();
     }
     // Get folders
     if (message.action === 'GET_FOLDERS') {
@@ -114,19 +113,37 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 });
 
+function createAllContextMenus() {
+  chrome.contextMenus.removeAll();
+  console.log(Object.keys(clipboardHistory));
+  for (const key of Object.keys(clipboardHistory)) {
+    chrome.contextMenus.create({
+      id: key,
+      title: `Add to Folder: ${key}`,
+      contexts: ["all"]
+    });
+  }
+}
+
 // Set up side panel behavior when extension is installed
 chrome.runtime.onInstalled.addListener(async () => {
   // Do not open side panel on action click - use popup instead
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
-  await chrome.contextMenus.create(
-    {
-      id: "1",
-      title: "Test",
-      contexts: ["all"]
-    }
-  );
+  createAllContextMenus();
   startClipboardMonitoring();
 });
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    activeFolder = info.menuItemId;
+    console.log(info.selectionText);
+    addClipboardData(info.selectionText);
+    chrome.runtime.sendMessage({
+      target: 'offscreen',
+      action: 'CONTEXT_MENU_ITEM_TO_CLIPBOARD',
+      data: info.selectionText
+    });
+  }
+);
 
 // Start monitoring on startup
 chrome.runtime.onStartup.addListener(startClipboardMonitoring);
