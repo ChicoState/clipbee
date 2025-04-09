@@ -14,7 +14,8 @@
         "sidePanel",
         "scripting",
         "activeTab",
-        "commands"
+        "commands",
+        "contextMenus"
     ],
     "host_permissions": [
         "<all_urls>"

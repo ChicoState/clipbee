@@ -86,6 +86,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 chrome.runtime.onInstalled.addListener(async () => {
   // Do not open side panel on action click - use popup instead
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
+  await chrome.contextMenus.create(
+    {
+      id: "1",
+      title: "Test",
+      contexts: ["all"]
+    }
+  );
   startClipboardMonitoring();
 });
 
