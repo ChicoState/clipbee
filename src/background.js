@@ -1,3 +1,5 @@
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "./firebaseConfig.js";
 //import { MessageCircleOff } from "lucide-react";
 
 let clipboardHistory = {
@@ -14,8 +16,6 @@ async function createOffscreenDocument() {
     justification: 'Read clipboard content',
   });
 }
-
-
 
 async function startClipboardMonitoring() {
   await createOffscreenDocument();
@@ -35,6 +35,17 @@ async function startClipboardMonitoring() {
       if (clipboardHistory[activeFolder].length === 0 || clipboardText !== clipboardHistory[activeFolder][0]) {
         clipboardHistory[activeFolder].unshift(clipboardText);
         console.log(`[${activeFolder}] Clipboard data changed: `, clipboardText);
+        // Firebase Integration: push the clipboard entry into Firestore
+        addDoc(collection(db, "clipboardEntries"), {
+          content: clipboardText,
+          timestamp: serverTimestamp()
+        })
+        .then(docRef => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch(error => {
+          console.error("Error adding document: ", error);
+        });
       }
       //send to react history
       chrome.runtime.sendMessage({
