@@ -20,7 +20,7 @@ const Main = () => {
   const [sortOrder, setSortOrder] = useState('newest');
   const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  
   const [activeFolder, setActiveFolder] = useState("Default");   
-  const [deleteButtonHover, setDeleteButtonHover] = useState(false);
+  const [deleteButtonHover, setDeleteButtonHover] = useState(null);
 
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
@@ -281,10 +281,10 @@ const Main = () => {
               </li>
               <button
                 onClick={() => sendRemoveSingleItem(item)}
-                onMouseEnter={() => setDeleteButtonHover(true)}
-                onMouseLeave={() => setDeleteButtonHover(false)}
+                onMouseEnter={() => setDeleteButtonHover(index)}
+                onMouseLeave={() => setDeleteButtonHover(null)}
               >
-                {deleteButtonHover ? <Trash color='red' className='h-5 w-5 scale-125' /> : <Trash color="black" className='h-5 w-5' />}
+                {deleteButtonHover == index ? <Trash color='red' className='h-5 w-5 scale-125' /> : <Trash color="black" className='h-5 w-5' />}
               </button>
               </div>
               </div>
