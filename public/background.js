@@ -45,6 +45,12 @@ async function startClipboardMonitoring() {
       clipboardHistory[activeFolder] = [];
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
+    if (message.target === 'service-worker' && message.action === 'REMOVE_SINGLE_ITEM') {
+      const index = clipboardHistory[activeFolder].indexOf(message.item);
+      clipboardHistory[activeFolder].splice(index, 1);
+      chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
+    }
+
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_HISTORY_REACT_LOAD') {
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
@@ -68,7 +74,6 @@ async function startClipboardMonitoring() {
     if (message.action === 'GET_FOLDERS') {
       const folderNames = Object.keys(clipboardHistory);
       chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
-      sendResponse({ success: true, folders: folderNames });
     }   
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
