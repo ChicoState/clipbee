@@ -29,8 +29,7 @@ async function startClipboardMonitoring() {
       //folder integration
       if (!clipboardHistory[activeFolder]) {
         clipboardHistory[activeFolder] = [];
-        //console.log('Clipboard data changed:', clipboardText);
-        //add firebase storage here i think
+        console.log('Clipboard data changed:', clipboardText);
       }
       if (clipboardHistory[activeFolder].length === 0 || clipboardText !== clipboardHistory[activeFolder][0]) {
         clipboardHistory[activeFolder].unshift(clipboardText);
@@ -65,9 +64,9 @@ async function startClipboardMonitoring() {
     if (message.action === 'SET_ACTIVE_FOLDER') {
       activeFolder = message.folder;
       console.log(`Active folder set to: ${activeFolder}`);
-      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY',data: clipboardHistory[activeFolder] || [] });
+      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY',data: clipboardHistory[activeFolder] || [] }); 
     }
-    // Add a new folder
+    // // Add a new folder
     if (message.action === 'ADD_FOLDER') {
       const folderName = message.folderName;
       if (!clipboardHistory[folderName]) {
@@ -75,13 +74,8 @@ async function startClipboardMonitoring() {
         console.log(`Folder created: ${folderName}`);
       }
       chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory) });
+      
     }
-    // Get folders
-    if (message.action === 'GET_FOLDERS') {
-      const folderNames = Object.keys(clipboardHistory);
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
-      sendResponse({ success: true, folders: folderNames });
-    }   
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
       chrome.sidePanel.open({ windowId: message.windowId });
@@ -95,7 +89,21 @@ async function startClipboardMonitoring() {
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log("Message received in background:", message);
   
-  if (message.target === 'service-worker') {
+   if (message.target === 'service-worker') { 
+    //Moved GET_FOLDERS to here for the sendResponse()
+    if (message.action === 'GET_FOLDERS') {
+      const folderNames = Object.keys(clipboardHistory);
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
+      sendResponse({
+        success: true,
+        folders: folderNames,
+        //Tracking folders
+        activeFolder: activeFolder
+      });
+
+
+      return true;
+    }
     if (message.action === 'CLOSE_SIDEPANEL') {
      
       try {

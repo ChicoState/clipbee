@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
 import { Search, Clock, ArrowUpDown } from "lucide-react";
-
+import {displayFiles}  from '../Firebase/firebaseData.jsx';
 function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -9,6 +9,7 @@ function SidePanel() {
     const [isSignedIn, setIsSignedIn] = useState(true);
     const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  // Updated to support folders
     const [activeFolder, setActiveFolder] = useState("Default");  // Track active folder
+    const [fileList, setFileList] = useState([]);//Track files
 
 
 
@@ -16,6 +17,20 @@ function SidePanel() {
         chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
         setClipboardHistory([]);
     }
+
+    useEffect(() => {
+        //Get the files from the folder
+        async function fetchFiles() {
+            //Run displayFiles to store all files names for displaying
+            const files = await displayFiles(activeFolder);
+            setFileList(files || []);
+        }
+        //If the folder is changed
+        //new files updated
+        if (activeFolder) {
+            fetchFiles();
+        }
+    }, [activeFolder]);
 
     useEffect(() => {
         // Fetch folders on mount
@@ -49,7 +64,7 @@ function SidePanel() {
     // Set the active folder and load its history
     const changeFolder = (folder) => {
         setActiveFolder(folder);
-        chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder });
+        chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder: folder });
     };
     
     const handleAddFolder = () => {
@@ -121,11 +136,6 @@ function SidePanel() {
     const displayItems = getFilteredSortedHistory();
     const totalFilteredItems = displayItems.length;
 
-    //  if (!isSignedIn) {
-    //     return null; // Return null to close the side panel when signed out
-
-    // }
-
     return (
         <div className="relative p-1 w-auto h-full bg-yellow-100 m-2 rounded-lg border border-gray-400 shadow-lg">
             {/* Clipboard Clip */}
@@ -181,8 +191,40 @@ function SidePanel() {
             </div>
 
             {/* Dropzone */}
-            <Dropzone />
+            <Dropzone activeFolder={activeFolder} />
 
+            {/* Display the Files*/}
+            <div className="p-4">
+                <div className="mb-4">
+                    <h3 className="text-lg font-semibold">Files in "{activeFolder}"</h3>
+                    <p className="text-sm text-gray-600">
+                    {fileList.length} {fileList.length === 1 ? 'item' : 'items'} found
+                    </p>
+                </div>
+
+            {fileList.length == 0 ? (
+                <p className="text-gray-500">No files found.</p>
+            ) : (
+                <ul className="space-y-2">
+                {fileList.map((file, index) => (
+                    <li
+                    key={index}
+                    className="p-2 bg-gray-100 rounded hover:bg-gray-200 flex justify-between items-center">
+                    <span>{file.file_name}</span>
+                        <a
+                            //Need to work on doesnt download
+                            href={file.download}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline text-sm"
+                        >
+                            Download
+                        </a>
+                    </li>
+                ))}
+                </ul>
+            )}
+            </div>
             {/* Clipboard History */}
             <div className="mt-4">
                 <div className="flex justify-between items-center mb-2">

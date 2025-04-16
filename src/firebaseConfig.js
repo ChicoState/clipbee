@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
 // Import isSupported to check if analytics is supported
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getStorage } from "firebase/storage";
 
 // replace with actual Firebase config from Firebase Console
 const firebaseConfig = {
@@ -16,6 +17,8 @@ const firebaseConfig = {
 
 // initate Firebase
 const app = initializeApp(firebaseConfig);
+const storage = getStorage(app);
+const db = getFirestore(app);
 //Intiate firestore for storage
 //const firestore = firebase.firestore();
 
@@ -32,6 +35,6 @@ isSupported().then(supported => {
     console.error("Error checking analytics support:", error);
 });
 
-const db = getFirestore(app);
 
-export { app,db,setDoc,getDoc,onSnapshot,doc};
+
+export { storage,app,db,setDoc,getDoc,onSnapshot,doc};

@@ -29,12 +29,21 @@ const Main = () => {
   useEffect(() => {
     // Load clipboard history for the active folder
     chrome.runtime.sendMessage({ action: 'GET_CLIPBOARD_HISTORY' }, (response) => {
-        setClipboardHistory(response.history || []);
+      try{
+        setClipboardHistory(response.history || [],);
+      }catch(error){
+        console.error("Could not get history",error)
+      }
     });
 
     // Load folders on initialization
     chrome.runtime.sendMessage({ action: 'GET_FOLDERS' }, (response) => {
-        setFolders(response.folders.map(folder => ({ name: folder })));
+      if (chrome.runtime.lastError) {
+        console.error("Error getting folders:", chrome.runtime.lastError.message);
+        return;
+      }  
+      setFolders(response.folders || [{ name: 'Default' }]);
+      setActiveFolder(response.activeFolder || 'Default');
     });
 
     // Listen for clipboard and folder updates from the background script
@@ -57,7 +66,7 @@ const Main = () => {
   // Set the active folder and load its history
   const changeFolder = (folder) => {
     setActiveFolder(folder);
-    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder });
+    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', Folder: folder });
   };
   const handleAddFolder = () => {
     const name = prompt("Enter new folder name:");
@@ -66,7 +75,8 @@ const Main = () => {
       alert("Folder already exists!");
       return;
     }
-    chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }, () => {
+    chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }
+    , () => {
       setFolders((prev) => [...prev, { name }]);
       changeFolder(name);
     });

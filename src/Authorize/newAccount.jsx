@@ -1,10 +1,10 @@
 import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword,onAuthStateChanged,browserLocalPersistence } from 'firebase/auth';
-
-import { app }from '../firebaseConfig';
+import { getAuth, createUserWithEmailAndPassword,onAuthStateChanged,browserLocalPersistence,setPersistence } from 'firebase/auth';
+import { app }from '../firebaseConfig'; 
 import Header from '../components/Header.jsx'
 import Background from "../components/Background.jsx";
+import {createUserstorage} from '../Firebase/firebaseData'
 
 const auth = getAuth(app);
 
@@ -14,24 +14,21 @@ const NewAccount = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
+    // chech if user is singed in
     useEffect(() => {
-          auth.setPersistence(browserLocalPersistence)
-            .then(() => {
-              // Listen to auth state changes
-              onAuthStateChanged(auth, (user) => {
-                if (user) {
-                  chrome.runtime.sendMessage({
-                    type: 'SIGN_IN'
-                });
-                  // Redirect to home if the user is already logged in
-                  navigate('/main'); 
-                }
-              });
-            })
-            .catch((error) => {
-              console.error('Error setting:', error);
-            });
-        }, [navigate]);
+      setPersistence(auth, browserLocalPersistence)
+        .then(() => {
+          onAuthStateChanged(auth, (user) => {
+            if (user) {
+              chrome.runtime.sendMessage({ type: 'SIGN_IN' });
+              navigate('/main');
+            }
+          });
+        })
+        .catch((error) => {
+          console.error('Error setting persistence:', error);
+        });
+    }, [navigate]);
 
     const createUserWithEmailPassword = async (e) => {
         e.preventDefault();
@@ -48,7 +45,9 @@ const NewAccount = () => {
           chrome.runtime.sendMessage({
             type: 'SIGN_IN'
         });
-          navigate('/Login')
+        //Before going to the main page 
+        createUserstorage(email,user.uid);
+        navigate('/main');
         } catch (error) {
           console.error('Error Creating Account:', error.message);
           setError('Failed to create account.');
