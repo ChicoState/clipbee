@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
-import { Search, Clock, ArrowUpDown } from "lucide-react";
+import { Search, Clock, ArrowUpDown, Trash } from "lucide-react";
 import {displayFiles}  from '../Firebase/firebaseData.jsx';
 function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
@@ -10,6 +10,12 @@ function SidePanel() {
     const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  // Updated to support folders
     const [activeFolder, setActiveFolder] = useState("Default");  // Track active folder
     const [fileList, setFileList] = useState([]);//Track files
+    const [deleteButtonHover, setDeleteButtonHover] = useState(null);
+
+    function sendRemoveSingleItem(item) {
+        chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
+        setClipboardHistory(clipboardHistory.filter(item => item !== item));
+      }
 
 
 
@@ -256,12 +262,23 @@ function SidePanel() {
                 {totalFilteredItems > 0 ? (
                     <ul className="space-y-2">
                         {displayItems.map((item, index) => (
+                            <div className='p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer'>
+                            <div className='flex justify-between'>
                             <li
-                                key={index}
-                                className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
-                                onClick={() => copyToClipboard(item)}>
-                                {item}
+                              key={index}
+                              onClick={() => copyToClipboard(item)}
+                              className="w-4/5">
+                              <div className="p-2 truncate">{item}</div>
                             </li>
+                            <button
+                              onClick={() => sendRemoveSingleItem(item)}
+                              onMouseEnter={() => setDeleteButtonHover(index)}
+                              onMouseLeave={() => setDeleteButtonHover(null)}
+                            >
+                              {deleteButtonHover == index ? <Trash color='red' className='h-5 w-5 scale-125' /> : <Trash color="black" className='h-5 w-5' />}
+                            </button>
+                            </div>
+                            </div>
                         ))}
                     </ul>
                 ) : (
