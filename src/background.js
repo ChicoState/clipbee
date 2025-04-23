@@ -1,3 +1,10 @@
+<<<<<<< HEAD:public/background.js
+=======
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "./firebaseConfig.js";
+//import { MessageCircleOff } from "lucide-react";
+
+>>>>>>> 2b95c09635dcb04fdf6d3112a5a3139a2849ea3e:src/background.js
 let clipboardHistory = {
   Default: [],
 };
@@ -13,6 +20,7 @@ async function createOffscreenDocument() {
   });
 }
 
+<<<<<<< HEAD:public/background.js
 
 function addClipboardData(clipboardText) {
   //folder integration
@@ -30,6 +38,8 @@ function addClipboardData(clipboardText) {
   });
 }
 
+=======
+>>>>>>> 2b95c09635dcb04fdf6d3112a5a3139a2849ea3e:src/background.js
 async function startClipboardMonitoring() {
   await createOffscreenDocument();
   // Send message to offscreen document to start monitoring
@@ -38,7 +48,37 @@ async function startClipboardMonitoring() {
   chrome.runtime.onMessage.addListener((message) => {
     // handle clipboard data from offscreen document
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_DATA') {
+<<<<<<< HEAD:public/background.js
       addClipboardData(message.data);
+=======
+      const clipboardText = message.data;
+      //folder integration
+      if (!clipboardHistory[activeFolder]) {
+        clipboardHistory[activeFolder] = [];
+        //console.log('Clipboard data changed:', clipboardText);
+        //add firebase storage here i think
+      }
+      if (clipboardHistory[activeFolder].length === 0 || clipboardText !== clipboardHistory[activeFolder][0]) {
+        clipboardHistory[activeFolder].unshift(clipboardText);
+        console.log(`[${activeFolder}] Clipboard data changed: `, clipboardText);
+        // Firebase Integration: push the clipboard entry into Firestore
+        addDoc(collection(db, "clipboardEntries"), {
+          content: clipboardText,
+          timestamp: serverTimestamp()
+        })
+        .then(docRef => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch(error => {
+          console.error("Error adding document: ", error);
+        });
+      }
+      //send to react history
+      chrome.runtime.sendMessage({
+        type: 'CLIPBOARD_HISTORY',
+        data: clipboardHistory[activeFolder]
+      });
+>>>>>>> 2b95c09635dcb04fdf6d3112a5a3139a2849ea3e:src/background.js
     }
     // handle clear history from react
     if (message.target === 'service-worker' && message.action === 'CLEAR_HISTORY') {
