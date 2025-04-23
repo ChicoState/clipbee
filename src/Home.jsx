@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Clock, ArrowUpDown } from 'lucide-react';
+import { Search, Clock, ArrowUpDown, Trash } from 'lucide-react';
 import {useNavigate } from 'react-router-dom';
 import { getAuth,signOut } from 'firebase/auth';
 
@@ -20,10 +20,16 @@ const Main = () => {
   const [sortOrder, setSortOrder] = useState('newest');
   const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  
   const [activeFolder, setActiveFolder] = useState("Default");   
+  const [deleteButtonHover, setDeleteButtonHover] = useState(null);
 
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
     setClipboardHistory([]);
+  }
+
+  function sendRemoveSingleItem(item) {
+    chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
+    setClipboardHistory(clipboardHistory.filter(item => item !== item));
   }
 
   useEffect(() => {
@@ -275,12 +281,23 @@ const Main = () => {
         {displayItems.length > 0 ? (
           <ul className="mt-2 space-y-2">
             {displayItems.map((item, index) => (
+              <div className='p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer'>
+              <div className='flex justify-between'>
               <li
                 key={index}
                 onClick={() => copyToClipboard(item)}
-                className="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">
-                <div className="truncate">{item}</div>
+                className="w-4/5">
+                <div className="p-2 truncate">{item}</div>
               </li>
+              <button
+                onClick={() => sendRemoveSingleItem(item)}
+                onMouseEnter={() => setDeleteButtonHover(index)}
+                onMouseLeave={() => setDeleteButtonHover(null)}
+              >
+                {deleteButtonHover == index ? <Trash color='red' className='h-5 w-5 scale-125' /> : <Trash color="black" className='h-5 w-5' />}
+              </button>
+              </div>
+              </div>
             ))}
           </ul>
         ) : (
