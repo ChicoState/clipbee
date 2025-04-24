@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
 import { Search, Clock, ArrowUpDown, Trash } from "lucide-react";
-import {displayFiles}  from '../Firebase/firebaseData.jsx';
+import {displayFiles, removeFilefromFirestore, removeFilefromStorage,deleteFolderContents}  from '../Firebase/firebaseData.jsx';
 function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -17,23 +17,21 @@ function SidePanel() {
         setClipboardHistory(clipboardHistory.filter(item => item !== item));
       }
 
-
-
     function sendClearHistory() {
         chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
         setClipboardHistory([]);
     }
 
+    //Get the files from the folder
+    async function fetchFiles() {
+        //Run displayFiles to store all files names for displaying
+        const files = await displayFiles(activeFolder);
+        setFileList(files || []);
+    }
     useEffect(() => {
-        //Get the files from the folder
-        async function fetchFiles() {
-            //Run displayFiles to store all files names for displaying
-            const files = await displayFiles(activeFolder);
-            setFileList(files || []);
-        }
         //If the folder is changed
         //new files updated
-        if (activeFolder) {
+        if (activeFolder ) {
             fetchFiles();
         }
     }, [activeFolder]);
@@ -138,6 +136,23 @@ function SidePanel() {
 
         return filteredItems;
     };
+    //format the remove button
+    const removeButtonStyle = {
+        backgroundColor: '#ff1744',
+        color: 'white',
+        border: 'none',
+        borderRadius: '50%',
+        width: '15px',
+        height: '15px',
+        padding: '0',
+        fontSize: '14px',
+        cursor: 'pointer',
+        transition: 'background-color 0.3s ease',
+        alignItems: 'center',
+        justifyContent: 'center',
+        lineHeight: '1',
+        display: 'flex',
+      };
 
     const displayItems = getFilteredSortedHistory();
     const totalFilteredItems = displayItems.length;
@@ -180,7 +195,7 @@ function SidePanel() {
                                 <option key={index} value={folder.name}>{folder.name}</option>
                             ))}
                         </select>
-                    </div>
+                    </div>                  
                     <button
                         onClick={handleAddFolder}
                         className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded"
@@ -197,7 +212,7 @@ function SidePanel() {
             </div>
 
             {/* Dropzone */}
-            <Dropzone activeFolder={activeFolder} />
+            <Dropzone activeFolder={activeFolder} onPublish={() => fetchFiles()} />
 
             {/* Display the Files*/}
             <div className="p-4">
@@ -218,14 +233,43 @@ function SidePanel() {
                     className="p-2 bg-gray-100 rounded hover:bg-gray-200 flex justify-between items-center">
                     <span>{file.file_name}</span>
                         <a
-                            //Need to work on doesnt download
                             href={file.download}
+                            //Invokes download to device
+                            download={file.file_name}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline text-sm"
-                        >
+                            className="text-blue-500 hover:underline text-sm">
                             Download
-                        </a>
+                            </a>
+                            <div>
+                                {/* Remove button for files in storage */}
+                                <button
+                                        onClick={async (e) => { 
+                                            e.stopPropagation();
+                                            try{
+                                                if (!activeFolder) {
+                                                    console.error("activeFolder is undefined. Skipping delete.");
+                                                    return;
+                                                }
+                                                //Calling two functions
+                                                //to remove from firestore and storage
+                                                await removeFilefromStorage(file.file_name, activeFolder);
+                                                await removeFilefromFirestore(file.file_name,activeFolder);
+                                                setFileList(prevList => prevList.filter(f => f.file_name !== file.file_name));
+                                            } catch (error) {
+                                                console.error('Error deleting file:', error);
+                                            }
+                                        }}
+                                        title="Remove file"
+                                        style={{
+                                            ...removeButtonStyle,
+                                            marginLeft: '10px',
+                                            position: 'static',
+                                        }}
+                                    >
+                                    X
+                                </button>
+                            </div>
                     </li>
                 ))}
                 </ul>

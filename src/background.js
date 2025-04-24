@@ -80,13 +80,13 @@ async function startClipboardMonitoring() {
         clipboardHistory[folderName] = [];
         console.log(`Folder created: ${folderName}`);
       }
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory) });
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory)});
       createAllContextMenus();
     }
     // Get folders
     if (message.action === 'GET_FOLDERS') {
       const folderNames = Object.keys(clipboardHistory);
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder:activeFolder});
     }   
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
