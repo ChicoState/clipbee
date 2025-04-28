@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Clock, ArrowUpDown, Trash } from 'lucide-react';
+import {Search, Clock, ArrowUpDown, Trash, PanelRightOpen, PictureInPicture2} from 'lucide-react';
 import {useNavigate } from 'react-router-dom';
 import { getAuth,signOut } from 'firebase/auth';
 
@@ -102,6 +102,19 @@ const Main = () => {
       });
     } catch (error) {
       console.error('Error opening side panel:', error);
+    }
+  };
+
+  // Function to open the detached window
+  const openDetachedWindow = async () => {
+    try {
+      // Send message to background script to open window
+      chrome.runtime.sendMessage({
+        target: 'service-worker',
+        action: 'OPEN_WINDOW',
+      });
+    } catch (error) {
+      console.error('Error opening detached window:', error);
     }
   };
 
@@ -212,7 +225,12 @@ const Main = () => {
           <button
             onClick={openSidePanel}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-            Open Side Panel
+            <PanelRightOpen className="h-4 w-4" />
+          </button>
+          <button
+          onClick={openDetachedWindow}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+            <PictureInPicture2 className="h-4 w-4" />
           </button>
           <button
             onClick={handleSignOut}
