@@ -142,6 +142,20 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         console.error("Failed to open side panel:", error);
       }
     }
+     if (message.action === 'OPEN_WINDOW') {
+       try {
+         await chrome.windows.create({
+           url: chrome.runtime.getURL("sidepanel.html"),
+           type: "popup",
+           width: 400,
+           height: 600,
+           focused: true
+         });
+         console.log("Detached window opened");
+       } catch (error) {
+         console.error("Failed to open detached window:", error);
+       }
+     }
   }
 });
 
