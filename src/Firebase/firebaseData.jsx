@@ -1,8 +1,8 @@
 import React, { useState,useEffect } from 'react';
 import { app }from '../firebaseConfig'; 
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import {setDoc,doc,addDoc, getFirestore,collection, getDocs} from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll} from "firebase/storage";
+import {setDoc,doc,addDoc, getFirestore,collection, getDocs, deleteDoc} from 'firebase/firestore';
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -107,4 +107,89 @@ export async function createUserstorage(email,id) {
     }
     
 }
-export default {createUserstorage,pushFilestoStorage,displayFiles};
+
+//Remove the files from storage 
+export async function removeFilefromStorage(fileName,folder) {
+  const user = await getCurrentUser();
+  const userId = user.uid; 
+  if (!user) {
+    console.log("No user signed in");
+    return ;
+  }
+  //get the file path to delete 
+  const fileRef = ref(storage, `users/${userId}/${folder}/${fileName}`);
+  try{
+  deleteObject(fileRef)
+      console.log('File deleted successfully');
+  }
+    catch(error) {
+      console.error('Error deleting file:', error);
+    };
+}
+
+export async function removeFilefromFirestore(fileName,folder) {
+  const user = await getCurrentUser();
+  const userId = user.uid; 
+  if (!user) {
+    console.log("No user signed in");
+    return ;
+  }
+  try{
+    await deleteDoc(doc(db, 'Users', userId, folder, fileName));
+  }catch(error){
+    console.error("Error removing file from firestore");
+  }
+}
+//Call to delete the whole folder with all the files
+//will delete the folder and all contents in storage
+//then in firestore
+export async function deleteFolderContents(folderName) {
+  const user = await getCurrentUser();
+  if (!user) {
+    console.log("No user signed in");
+    return ;
+  }
+  const userId = user.uid; 
+  //Storage path
+  const folderRef = ref(storage, `users/${userId}/${folderName}`);
+  try {
+    const result = await listAll(folderRef);
+    // Delete all files in the folder
+    const deleteFilePromises = result.items.map((itemRef) => deleteObject(itemRef));
+    await Promise.all(deleteFilePromises);
+
+    console.log(`Successfully deleted all files in folder: ${folderRef}`);
+  } catch (error) {
+    console.error("Error deleting folder contents:", error.message);
+  }
+
+
+//Firestore path
+  const filesRef = collection(db, 'Users', userId, folderName);
+  const snapshot = await getDocs(filesRef);
+  try{
+    // Delete all files from firestore(documents)
+    const deleteFilePromises = snapshot.docs.map(fileDoc =>
+      deleteDoc(doc(db, 'Users', userId, folderName, fileDoc.id))
+    );
+    await Promise.all(deleteFilePromises);
+  }catch(error) {
+    console.log("Cannot delete all files");
+  }
+
+    // If it's not the default folder, optionally delete the folder document
+  if (folderName !== 'Default') {
+    // This assumes the folder itself is a document (not a collection name)
+    const folderDocRef = doc(db, 'Users', userId, folderName);
+    try {
+      await deleteDoc(folderDocRef);
+      console.log(`Deleted folder "${folderName}" for user ${userId}`);
+    } catch (error) {
+      console.warn(`Couldn't delete folder "${folderName}":`, error.message);
+    }
+  } else {
+        console.log(`Cleared all files in "Default" folder for user ${userId}, but kept the folder.`);
+    }
+}
+
+export default {createUserstorage,pushFilestoStorage,displayFiles,removeFilefromStorage,removeFilefromFirestore,deleteFolderContents};
