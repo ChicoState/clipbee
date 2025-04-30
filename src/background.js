@@ -41,7 +41,7 @@ function addClipboardData(clipboardText) {
     type: 'CLIPBOARD_HISTORY',
     data: clipboardHistory[activeFolder]
   });
-}
+}  
 
 async function startClipboardMonitoring() {
   await createOffscreenDocument();
@@ -94,6 +94,14 @@ async function startClipboardMonitoring() {
     }
     if (message.target === 'service-worker' && message.action === 'OPEN_POPUP') {
       chrome.action.openPopup();
+    }
+    if (message.target === 'service-worker' && message.action === 'RESTORE_HISTORY') {
+      clipboardHistory[activeFolder] = message.data;
+      console.log(`Clipboard history restored for folder: ${activeFolder}`);
+      chrome.runtime.sendMessage({
+        type: 'CLIPBOARD_HISTORY',
+        data: clipboardHistory[activeFolder]
+      });
     }
   });
 }

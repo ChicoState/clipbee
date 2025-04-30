@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {Search, Clock, ArrowUpDown, Trash, PanelRightOpen, PictureInPicture2} from 'lucide-react';
-import {useNavigate } from 'react-router-dom';
-import { getAuth,signOut } from 'firebase/auth';
-
-import { app }from './firebaseConfig';
-import Header from './components/Header.jsx'
+import { Search, Clock, ArrowUpDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getAuth, signOut } from 'firebase/auth';
+import { app } from './firebaseConfig';
+import { PanelRightOpen, PictureInPicture2, Trash } from 'lucide-react';
+import Header from './components/Header.jsx';
 import Background from "./components/Background.jsx";
 
 const ITEMSPERPAGE = 5;
@@ -21,24 +21,41 @@ const Main = () => {
   const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  
   const [activeFolder, setActiveFolder] = useState("Default");   
   const [deleteButtonHover, setDeleteButtonHover] = useState(null);
+  const [lastClearedHistory, setLastClearedHistory] = useState([]);
+  const [suppressNextHistoryUpdate, setSuppressNextHistoryUpdate] = useState(false);
 
-  function sendClearHistory() {
+  const clearClipboardHistory = () => {
+    if (clipboardHistory.length === 0) return;
+    setLastClearedHistory(clipboardHistory);
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
     setClipboardHistory([]);
-  }
+  };
+
+  const undoClearHistory = () => {
+    if (lastClearedHistory.length === 0) return;
+    setClipboardHistory(lastClearedHistory);
+    lastClearedHistory.forEach(entry => {
+      chrome.runtime.sendMessage({
+        target: 'service-worker',
+        action: 'CLIPBOARD_DATA',
+        data: entry,
+      });
+    });
+    setLastClearedHistory([]);
+  };
 
   function sendRemoveSingleItem(item) {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
-    setClipboardHistory(clipboardHistory.filter(item => item !== item));
+    setClipboardHistory(prevHistory => prevHistory.filter(historyItem => historyItem !== item));
   }
 
   useEffect(() => {
     // Load clipboard history for the active folder
-    chrome.runtime.sendMessage({ action: 'GET_CLIPBOARD_HISTORY' }, (response) => {
-      try{
-        setClipboardHistory(response.history || [],);
-      }catch(error){
-        console.error("Could not get history",error)
+    chrome.runtime.sendMessage({ action: 'GET_CLIPBOARD_HISTORY', folder: activeFolder }, (response) => {
+      try {
+        setClipboardHistory(response.history || []);
+      } catch (error) {
+        console.error("Could not get history", error);
       }
     });
 
@@ -47,33 +64,39 @@ const Main = () => {
       if (chrome.runtime.lastError) {
         console.error("Error getting folders:", chrome.runtime.lastError.message);
         return;
-      }  
+      }
       setFolders(response.folders || [{ name: 'Default' }]);
       setActiveFolder(response.activeFolder || 'Default');
     });
 
     // Listen for clipboard and folder updates from the background script
     const messageListener = (message) => {
-        if (message.type === 'CLIPBOARD_HISTORY') {
-            setClipboardHistory(message.data);
+      if (message.type === 'CLIPBOARD_HISTORY') {
+        if (!suppressNextHistoryUpdate) {
+          setClipboardHistory(message.data);
+        } else {
+          setSuppressNextHistoryUpdate(false);
         }
-        if (message.type === 'FOLDER_UPDATE') {
-            setFolders(message.folders.map(folder => ({ name: folder })));
-        }
+      }
+
+      if (message.type === 'FOLDER_UPDATE') {
+        setFolders(message.folders.map(folder => ({ name: folder })));
+      }
     };
+
     chrome.runtime.onMessage.addListener(messageListener);
 
     // Clean up listener on unmount
     return () => {
-        chrome.runtime.onMessage.removeListener(messageListener);
+      chrome.runtime.onMessage.removeListener(messageListener);
     };
-}, [activeFolder]);
+  }, [activeFolder]);
 
-  // Set the active folder and load its history
   const changeFolder = (folder) => {
     setActiveFolder(folder);
-    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', Folder: folder });
+    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder: folder });
   };
+
   const handleAddFolder = () => {
     const name = prompt("Enter new folder name:");
     if (!name) return;
@@ -81,20 +104,15 @@ const Main = () => {
       alert("Folder already exists!");
       return;
     }
-    chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }
-    , () => {
+    chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }, () => {
       setFolders((prev) => [...prev, { name }]);
       changeFolder(name);
     });
   };
-   
-  // Function to open the side panel
+
   const openSidePanel = async () => {
     try {
-      // Get the current window ID
       const currentWindow = await chrome.windows.getCurrent();
-
-      // Send message to background script to open side panel
       chrome.runtime.sendMessage({
         target: 'service-worker',
         action: 'OPEN_SIDEPANEL',
@@ -121,61 +139,48 @@ const Main = () => {
   // Function to copy item to clipboard
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
-        .then(() => {
-          console.log('Text copied to clipboard');
-        })
-        .catch(err => {
-          console.error('Could not copy text: ', err);
-        });
+      .then(() => {
+        console.log('Text copied to clipboard');
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+      });
   };
 
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest');
   };
 
-  // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
   
-  // Get history items (all items except the first one)
   const getHistoryItems = () => {
     if (clipboardHistory.length <= 1) return [];
     return clipboardHistory.slice(1);
   };
 
-  // Filter and sort history items
   const getFilteredAndSortedHistory = () => {
-    // Get all history items (excluding current clipboard)
     const historyItems = getHistoryItems();
-
-    // Filter by search query
     const filteredItems = historyItems.filter(item =>
-        item && item.toLowerCase().includes(searchQuery.toLowerCase())
+      item && item.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    // Apply sorting
     if (sortOrder === 'oldest') {
       return [...filteredItems].reverse();
     }
-
     return filteredItems;
   };
 
-  // Get paginated items
   const getPagedItems = () => {
     const filteredAndSortedItems = getFilteredAndSortedHistory();
     const startIndex = clipboardPage * ITEMSPERPAGE;
     const endIndex = startIndex + ITEMSPERPAGE;
-
     return filteredAndSortedItems.slice(startIndex, endIndex);
   };
 
-  // Calculate total pages
   const getTotalPages = () => {
     const filteredItems = getFilteredAndSortedHistory();
     return Math.ceil(filteredItems.length / ITEMSPERPAGE);
   };
 
-   // Handle page change
   const handlePreviousPage = () => {
     setClipboardPage(prev => Math.max(0, prev - 1));
   };
@@ -187,26 +192,22 @@ const Main = () => {
     });
   };
 
-  //Signs user out
   const handleSignOut = async () => {
-          try {
-            const currentWindow = await chrome.windows.getCurrent();
-            await signOut(auth); 
-            console.log("User signed out successfully"); 
-            //chrome.runtime.sendMessage({ type: 'SIGN_OUT' });
-            chrome.runtime.sendMessage({
-              target: 'service-worker',
-              action: 'CLOSE_SIDEPANEL',
-              windowId: currentWindow.id
-            });
-             //Send user back to start page
-             navigate('/login');
-          } catch (error) {
-            console.error("Error signing out:", error);
-          }
-    };
+    try {
+      const currentWindow = await chrome.windows.getCurrent();
+      await signOut(auth);
+      console.log("User signed out successfully");
+      chrome.runtime.sendMessage({
+        target: 'service-worker',
+        action: 'CLOSE_SIDEPANEL',
+        windowId: currentWindow.id
+      });
+      navigate('/login');
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
-  // Reset page when search changes
   useEffect(() => {
     setClipboardPage(0);
   }, [searchQuery]);
@@ -221,7 +222,7 @@ const Main = () => {
         <div className="flex items-center space-x-2">
           <h3 className="text-xl font-bold">Clipbee</h3>
         </div>
-        <div className="space-x-2">
+        <div className="flex justify-end gap-2 mb-4">
           <button
             onClick={openSidePanel}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
@@ -236,6 +237,15 @@ const Main = () => {
             onClick={handleSignOut}
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
             Sign Out
+          </button>
+          <button
+            onClick={undoClearHistory}
+            disabled={lastClearedHistory.length === 0}
+            className={`${
+              lastClearedHistory.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'
+            } text-white px-3 py-1 rounded`}
+          >
+            Undo Clear
           </button>
         </div>
       </div>
@@ -259,12 +269,6 @@ const Main = () => {
           className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
           + Add Folder
         </button>
-      </div>
-  
-      {/* Current Clipboard */}
-      <h4 className="font-semibold mt-4">Current Clipboard</h4>
-      <div className="p-2 bg-gray-100 rounded">
-        <p className="truncate">{currentClipboardItem}</p>
       </div>
   
       {/* Clipboard History */}
@@ -326,7 +330,7 @@ const Main = () => {
   
         {getHistoryItems().length > 0 && (
           <button
-            onClick={sendClearHistory}
+            onClick={clearClipboardHistory}
             className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
             Clear History
           </button>

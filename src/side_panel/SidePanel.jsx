@@ -11,6 +11,8 @@ function SidePanel() {
     const [activeFolder, setActiveFolder] = useState("Default");  // Track active folder
     const [fileList, setFileList] = useState([]);//Track files
     const [deleteButtonHover, setDeleteButtonHover] = useState(null);
+    const [lastClearedHistory, setLastClearedHistory] = useState([]);
+
 
     function sendRemoveSingleItem(item) {
         chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
@@ -18,9 +20,31 @@ function SidePanel() {
       }
 
     function sendClearHistory() {
+        if (clipboardHistory.length === 0) return;
+        setLastClearedHistory(clipboardHistory); // save current history before clearing
         chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
         setClipboardHistory([]);
     }
+    
+
+    function undoClearHistory() {
+        if (lastClearedHistory.length === 0) return;
+    
+        // Restore in UI
+        setClipboardHistory(lastClearedHistory);
+    
+        // Send message to service worker to re-insert history (optional, for sync)
+        lastClearedHistory.forEach(entry => {
+            chrome.runtime.sendMessage({
+                target: 'service-worker',
+                action: 'CLIPBOARD_DATA',
+                data: entry
+            });
+        });
+    
+        setLastClearedHistory([]); // clear undo history
+    }
+    
 
     //Get the files from the folder
     async function fetchFiles() {
@@ -173,6 +197,15 @@ function SidePanel() {
                             onClick={sendClearHistory}
                             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
                             Clear History
+                        </button>
+                        <button
+                            onClick={undoClearHistory}
+                            disabled={lastClearedHistory.length === 0}
+                            className={`${
+                                lastClearedHistory.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'
+                            } text-white px-3 py-1 rounded`}
+                            >
+                            Undo Clear
                         </button>
                         <button
                             onClick={openPopup}
