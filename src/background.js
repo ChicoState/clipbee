@@ -64,6 +64,13 @@ async function startClipboardMonitoring() {
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
 
+    if (message.target === 'service-worker' && message.action === 'REMOVE_MULTIPLE_ITEMS') {
+      const items = message.items;
+      clipboardHistory[activeFolder] = clipboardHistory[activeFolder].filter(item => !items.includes(item));
+      console.log(clipboardHistory[activeFolder]);
+      chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
+    }
+
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_HISTORY_REACT_LOAD') {
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
