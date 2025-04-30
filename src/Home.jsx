@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useClipboardModel } from './Popup/useClipboardData.jsx';
 import { Search, Clock, ArrowUpDown, Trash, CheckSquare, Square } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
@@ -13,15 +14,26 @@ const auth = getAuth(app);
 
 const Main = () => {
   const navigate = useNavigate();
-  const [clipboardHistory, setClipboardHistory] = useState([]);
-  const [clipboardPage, setClipboardPage] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest');
-  const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);
-  const [activeFolder, setActiveFolder] = useState("Default");
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
+  const {clipboardHistory,
+    clipboardPage,
+    setClipboardPage,
+    searchQuery,
+    setSearchQuery,
+    sortOrder,
+    setSortOrder,
+    folders,
+    activeFolder,
+    setActiveFolder,
+    setFolders,
+    setClipboardHistory,
+    filteredAndSortedHistory,
+    pagedItems,
+    getHistoryItems
+    } = useClipboardModel();
 
+  
 
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
@@ -32,40 +44,6 @@ const Main = () => {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
     setClipboardHistory(clipboardHistory.filter(item => item !== item));
   }
-
-  function sendRemoveMultipleItems(items) {
-    chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_MULTIPLE_ITEMS', items });
-    setClipboardHistory(clipboardHistory.filter(item => !items.includes(item)));
-  }
-
-
-  useEffect(() => {
-    // Load folders on initialization
-    chrome.runtime.sendMessage({ action: 'GET_FOLDERS' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error getting folders:", chrome.runtime.lastError.message);
-        return;
-      }
-      setFolders(response.folders || [{ name: 'Default' }]);
-      setActiveFolder(response.activeFolder || 'Default');
-    });
-
-    // Listen for clipboard and folder updates from the background script
-    const messageListener = (message) => {
-      if (message.type === 'CLIPBOARD_HISTORY') {
-        setClipboardHistory(message.data);
-      }
-      if (message.type === 'FOLDER_UPDATE') {
-        setFolders(message.folders.map(folder => ({ name: folder })));
-      }
-    };
-    chrome.runtime.onMessage.addListener(messageListener);
-
-    // Clean up listener on unmount
-    return () => {
-      chrome.runtime.onMessage.removeListener(messageListener);
-    };
-  }, [activeFolder]);
 
   // Set the active folder and load its history
   const changeFolder = (folder) => {
@@ -121,42 +99,9 @@ const Main = () => {
   // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
 
-  // Get history items (all items except the first one)
-  const getHistoryItems = () => {
-    if (clipboardHistory.length <= 1) return [];
-    return clipboardHistory.slice(1);
-  };
-
-  // Filter and sort history items
-  const getFilteredAndSortedHistory = () => {
-    // Get all history items (excluding current clipboard)
-    const historyItems = getHistoryItems();
-
-    // Filter by search query
-    const filteredItems = historyItems.filter(item =>
-      item && item.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Apply sorting
-    if (sortOrder === 'oldest') {
-      return [...filteredItems].reverse();
-    }
-
-    return filteredItems;
-  };
-
-  // Get paginated items
-  const getPagedItems = () => {
-    const filteredAndSortedItems = getFilteredAndSortedHistory();
-    const startIndex = clipboardPage * ITEMSPERPAGE;
-    const endIndex = startIndex + ITEMSPERPAGE;
-
-    return filteredAndSortedItems.slice(startIndex, endIndex);
-  };
-
   // Calculate total pages
   const getTotalPages = () => {
-    const filteredItems = getFilteredAndSortedHistory();
+    const filteredItems = filteredAndSortedHistory();
     return Math.ceil(filteredItems.length / ITEMSPERPAGE);
   };
 
@@ -196,9 +141,9 @@ const Main = () => {
     setClipboardPage(0);
   }, [searchQuery]);
 
-  const displayItems = getPagedItems();
+  const displayItems = pagedItems();
   const totalPages = getTotalPages();
-  const totalFilteredItems = getFilteredAndSortedHistory().length;
+  const totalFilteredItems = filteredAndSortedHistory().length;
 
   return (
     <Background>
@@ -343,7 +288,9 @@ const Main = () => {
         )}
 
         {deleteMultipleMode && (
-          DeleteMultipleButton(selectedItems)
+          <DeleteMultipleButton 
+            selectedItems={selectedItems}>
+          </DeleteMultipleButton>
         )}
 
         {getHistoryItems().length > 0 && (
