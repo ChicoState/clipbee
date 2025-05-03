@@ -6,8 +6,7 @@ import DeleteButton from './components/DeleteButton.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
 import SidePanelButton from './components/SidePanelButton.jsx';
 import SignOutButton from './components/SignOutButton.jsx';
-
-const ITEMSPERPAGE = 5;
+import ClearHistoryButton from './components/ClearHistoryButton.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -29,12 +28,6 @@ const Main = () => {
     getHistoryItems
     } = useClipboardData();
 
-  
-  function sendClearHistory() {
-    chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
-    setClipboardHistory([]);
-  }
-  
   // Set the active folder and load its history
   const changeFolder = (folder) => {
     setActiveFolder(folder);
@@ -207,14 +200,7 @@ const Main = () => {
             setDeleteMultipleMode={setDeleteMultipleMode}>
           </DeleteMultipleButton>
         )}
-
-        {getHistoryItems().length > 0 && (
-          <button
-            onClick={sendClearHistory}
-            className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-            Clear History
-          </button>
-        )}
+        {getHistoryItems().length > 0 && (<ClearHistoryButton setClipboardHistory={setClipboardHistory} />)}
       </div>
     </Background>
   );
