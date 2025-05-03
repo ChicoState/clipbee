@@ -7,6 +7,7 @@ import { app } from './firebaseConfig';
 import Background from "./components/Background.jsx";
 import DeleteButton from './components/DeleteButton.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
+import SidePanelButton from './components/SidePanelButton.jsx';
 
 const ITEMSPERPAGE = 5;
 
@@ -58,21 +59,7 @@ const Main = () => {
       });
   };
 
-  // Function to open the side panel
-  const openSidePanel = async () => {
-    try {
-      // Get the current window ID
-      const currentWindow = await chrome.windows.getCurrent();
-      // Send message to background script to open side panel
-      chrome.runtime.sendMessage({
-        target: 'service-worker',
-        action: 'OPEN_SIDEPANEL',
-        windowId: currentWindow.id
-      });
-    } catch (error) {
-      console.error('Error opening side panel:', error);
-    }
-  };
+  
 
   // Function to copy item to clipboard
   const copyToClipboard = (text) => {
@@ -126,11 +113,7 @@ const Main = () => {
           <h3 className="text-xl font-bold">Clipbee</h3>
         </div>
         <div className="space-x-2">
-          <button
-            onClick={openSidePanel}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-            Open Side Panel
-          </button>
+          <SidePanelButton />
           <button
             onClick={handleSignOut}
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
