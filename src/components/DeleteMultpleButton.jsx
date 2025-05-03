@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trash } from 'lucide-react';
 
-const DeleteMultipleButton = ({ selectedItems, setSelectedItems, setClipboardHistory, clipboardHistory, setDeleteMultipleMode}) => {
+export default function DeleteMultipleButton({ selectedItems, setSelectedItems, setClipboardHistory, clipboardHistory, setDeleteMultipleMode}){
     
     const deleteMultipleItems = () => {
         const itemsToDelete = Array.from(selectedItems);
@@ -30,5 +30,3 @@ const DeleteMultipleButton = ({ selectedItems, setSelectedItems, setClipboardHis
         </div>
     );
 }
-
-export default DeleteMultipleButton

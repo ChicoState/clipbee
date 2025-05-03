@@ -7,6 +7,7 @@ import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
 import SidePanelButton from './components/SidePanelButton.jsx';
 import SignOutButton from './components/SignOutButton.jsx';
 import ClearHistoryButton from './components/ClearHistoryButton.jsx';
+import ToggleDeleteMultipleButton from './components/ToggleDeleteMultipleButton.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -112,9 +113,10 @@ const Main = () => {
             <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
             <ArrowUpDown className="h-3 w-3" />
           </button>
-          <button onClick={() => setDeleteMultipleMode(!deleteMultipleMode)} className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
-            {deleteMultipleMode ? 'Cancel' : 'Delete Multiple'}
-          </button>
+          <ToggleDeleteMultipleButton
+            deleteMultipleMode={deleteMultipleMode}
+            setDeleteMultipleMode={setDeleteMultipleMode}
+          />
         </div>
 
         {/* Search Input */}

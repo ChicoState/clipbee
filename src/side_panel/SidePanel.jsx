@@ -2,27 +2,21 @@ import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
 import { Search, Clock, ArrowUpDown, Trash } from "lucide-react";
 import {displayFiles}  from '../Firebase/firebaseData.jsx';
+import ClipboardItem from '../components/ClipboardItem.jsx';
+import ToggleDeleteMultipleButton from '../components/ToggleDeleteMultipleButton.jsx';
+import ClearHistoryButton from '../components/ClearHistoryButton.jsx';
+import DeleteMultipleButton from '../components/DeleteMultpleButton.jsx';
+
 function SidePanel() {
     const [clipboardHistory, setClipboardHistory] = useState([]);
+    const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
+    const [selectedItems, setSelectedItems] = useState(new Set());
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState('newest');
     const [isSignedIn, setIsSignedIn] = useState(true);
     const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  // Updated to support folders
     const [activeFolder, setActiveFolder] = useState("Default");  // Track active folder
     const [fileList, setFileList] = useState([]);//Track files
-    const [deleteButtonHover, setDeleteButtonHover] = useState(null);
-
-    function sendRemoveSingleItem(item) {
-        chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
-        setClipboardHistory(clipboardHistory.filter(item => item !== item));
-      }
-
-
-
-    function sendClearHistory() {
-        chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
-        setClipboardHistory([]);
-    }
 
     useEffect(() => {
         //Get the files from the folder
@@ -84,18 +78,6 @@ function SidePanel() {
         chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name });
     };
        
-
-    // Function to copy item to clipboard
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text)
-            .then(() => {
-                console.log('Text copied to clipboard');
-            })
-            .catch(err => {
-                console.error('Could not copy text: ', err);
-            });
-    };
-
     const openPopup = async () => {
         try {
             // Send message to background script to open popup
@@ -154,11 +136,15 @@ function SidePanel() {
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-bold">Clipbee</h3>
                     <div className="flex space-x-2">
-                        <button
-                            onClick={sendClearHistory}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                            Clear History
-                        </button>
+                        <ClearHistoryButton setClipboardHistory={setClipboardHistory} />
+                        <DeleteMultipleButton
+                            selectedItems={selectedItems}
+                            setSelectedItems={setSelectedItems}
+                            clipboardHistory={clipboardHistory}
+                            setClipboardHistory={setClipboardHistory}
+                            setDeleteMultipleMode={setDeleteMultipleMode}
+                            deleteMultipleMode={deleteMultipleMode}
+                        />
                         <button
                             onClick={openPopup}
                             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
@@ -242,6 +228,10 @@ function SidePanel() {
                         <span>{sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
                         <ArrowUpDown className="h-3 w-3" />
                     </button>
+                    <ToggleDeleteMultipleButton
+                        deleteMultipleMode={deleteMultipleMode}
+                        setDeleteMultipleMode={setDeleteMultipleMode}
+                    />
                 </div>
 
                 {/* Search Bar */}
@@ -262,23 +252,15 @@ function SidePanel() {
                 {totalFilteredItems > 0 ? (
                     <ul className="space-y-2">
                         {displayItems.map((item, index) => (
-                            <div className='p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer'>
-                            <div className='flex justify-between'>
-                            <li
-                              key={index}
-                              onClick={() => copyToClipboard(item)}
-                              className="w-4/5">
-                              <div className="p-2 truncate">{item}</div>
-                            </li>
-                            <button
-                              onClick={() => sendRemoveSingleItem(item)}
-                              onMouseEnter={() => setDeleteButtonHover(index)}
-                              onMouseLeave={() => setDeleteButtonHover(null)}
-                            >
-                              {deleteButtonHover == index ? <Trash color='red' className='h-5 w-5 scale-125' /> : <Trash color="black" className='h-5 w-5' />}
-                            </button>
-                            </div>
-                            </div>
+                            <ClipboardItem
+                                item={item}
+                                index={index}
+                                clipboardHistory={clipboardHistory}
+                                setClipboardHistory={setClipboardHistory}
+                                deleteMultipleMode={deleteMultipleMode}
+                                selectedItems={selectedItems}
+                                setSelectedItems={setSelectedItems}
+                            />
                         ))}
                     </ul>
                 ) : (
