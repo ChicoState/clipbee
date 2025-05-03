@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useClipboardData } from './Popup/useClipboardData.jsx';
-import { Search, Clock, ArrowUpDown, CheckSquare, Square } from 'lucide-react';
+import { Search, Clock, ArrowUpDown} from 'lucide-react';
 import Background from "./components/Background.jsx";
-import DeleteButton from './components/DeleteButton.jsx';
+import ClipboardItem from './components/ClipboardItem.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
 import SidePanelButton from './components/SidePanelButton.jsx';
 import SignOutButton from './components/SignOutButton.jsx';
@@ -44,17 +44,6 @@ const Main = () => {
       , () => {
         setFolders((prev) => [...prev, { name }]);
         changeFolder(name);
-      });
-  };
-
-  // Function to copy item to clipboard
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        console.log('Text copied to clipboard');
-      })
-      .catch(err => {
-        console.error('Could not copy text: ', err);
       });
   };
 
@@ -144,44 +133,19 @@ const Main = () => {
           {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found
         </div>
 
-
         {displayItems.length > 0 ? (
           <>
           <ul className="mt-2 space-y-2">
             {displayItems.map((item, index) => (
-              <div className='p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer'>
-                <div className='flex justify-between'>
-                  {deleteMultipleMode && (
-                    <div className="pr-2" onClick={(e) => {
-                      e.stopPropagation();
-                      // Toggle selection logic here
-                      const newSelectedItems = new Set(selectedItems);
-                      if (newSelectedItems.has(item)) {
-                        newSelectedItems.delete(item);
-                      } else {
-                        newSelectedItems.add(item);
-                      }
-                      setSelectedItems(newSelectedItems);
-                    }}>
-                      {selectedItems.has(item) ?
-                        <CheckSquare className="w-5 h-5 text-blue-500" /> :
-                        <Square className="w-5 h-5 text-gray-400" />
-                      }
-                    </div>
-                  )}
-                  <li
-                    key={index}
-                    onClick={() => copyToClipboard(item)}
-                    className="w-4/5">
-                    <div className="p-2 truncate">{item}</div>
-                  </li>
-                  <DeleteButton 
-                    item={item}
-                    clipboardHistory={clipboardHistory}
-                    setClipboardHistory={setClipboardHistory}
-                  />
-                </div>
-              </div>
+              <ClipboardItem
+                item={item}
+                index={index}
+                clipboardHistory={clipboardHistory}
+                setClipboardHistory={setClipboardHistory}
+                deleteMultipleMode={deleteMultipleMode}
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+              />
             ))}
           </ul>
         </>
@@ -200,6 +164,7 @@ const Main = () => {
             setDeleteMultipleMode={setDeleteMultipleMode}>
           </DeleteMultipleButton>
         )}
+
         {getHistoryItems().length > 0 && (<ClearHistoryButton setClipboardHistory={setClipboardHistory} />)}
       </div>
     </Background>
