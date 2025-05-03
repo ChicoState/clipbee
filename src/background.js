@@ -1,12 +1,12 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
-//import { MessageCircleOff } from "lucide-react";
+
 let clipboardHistory = {
   Default: [],
 };
-
 let activeFolder = "Default";
 
+//function to create offscreen document that can read clipboard
 async function createOffscreenDocument() {
   if (await chrome.offscreen.hasDocument()) return;
   await chrome.offscreen.createDocument({

@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { Trash } from 'lucide-react';
 
-const DeleteButton = ({ item, sendRemoveSingleItem}) => {
+const DeleteButton = ({ item, clipboardHistory, setClipboardHistory}) => {
     const [deleteButtonHover, setDeleteButtonHover] = useState(false);
+
+    function sendRemoveSingleItem(item) {
+        chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
+        // disregard current clipboard item
+        const newClipboardHistory = clipboardHistory.slice(1);
+        setClipboardHistory(newClipboardHistory.filter(item => item !== item));
+    }
 
     return (
         <button

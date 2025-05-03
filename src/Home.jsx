@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useClipboardModel } from './Popup/useClipboardData.jsx';
-import { Search, Clock, ArrowUpDown, Trash, CheckSquare, Square } from 'lucide-react';
+import { useClipboardData } from './Popup/useClipboardData.jsx';
+import { Search, Clock, ArrowUpDown, CheckSquare, Square } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 import { app } from './firebaseConfig';
@@ -31,20 +31,14 @@ const Main = () => {
     filteredAndSortedHistory,
     pagedItems,
     getHistoryItems
-    } = useClipboardModel();
+    } = useClipboardData();
 
   
-
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
     setClipboardHistory([]);
   }
   
-  function sendRemoveSingleItem(item) {
-    chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
-    setClipboardHistory(clipboardHistory.filter(item => item !== item));
-  }
-
   // Set the active folder and load its history
   const changeFolder = (folder) => {
     setActiveFolder(folder);
@@ -69,7 +63,6 @@ const Main = () => {
     try {
       // Get the current window ID
       const currentWindow = await chrome.windows.getCurrent();
-
       // Send message to background script to open side panel
       chrome.runtime.sendMessage({
         target: 'service-worker',
@@ -99,24 +92,6 @@ const Main = () => {
   // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
 
-  // Calculate total pages
-  const getTotalPages = () => {
-    const filteredItems = filteredAndSortedHistory();
-    return Math.ceil(filteredItems.length / ITEMSPERPAGE);
-  };
-
-  // Handle page change
-  const handlePreviousPage = () => {
-    setClipboardPage(prev => Math.max(0, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setClipboardPage(prev => {
-      const totalPages = getTotalPages();
-      return prev + 1 < totalPages ? prev + 1 : prev;
-    });
-  };
-
   //Signs user out
   const handleSignOut = async () => {
     try {
@@ -142,7 +117,6 @@ const Main = () => {
   }, [searchQuery]);
 
   const displayItems = pagedItems();
-  const totalPages = getTotalPages();
   const totalFilteredItems = filteredAndSortedHistory().length;
 
   return (
@@ -255,31 +229,15 @@ const Main = () => {
                     className="w-4/5">
                     <div className="p-2 truncate">{item}</div>
                   </li>
-                  <DeleteButton item={item} sendRemoveSingleItem={sendRemoveSingleItem} />
+                  <DeleteButton 
+                    item={item}
+                    clipboardHistory={clipboardHistory}
+                    setClipboardHistory={setClipboardHistory}
+                  />
                 </div>
               </div>
             ))}
           </ul>
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
-                <button
-                    onClick={handlePreviousPage}
-                    disabled={clipboardPage === 0}
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
-                    Previous
-                </button>
-                <span className="text-sm">
-                    Page {clipboardPage + 1} of {totalPages}
-                </span>
-                <button
-                    onClick={handleNextPage}
-                    disabled={clipboardPage + 1 >= totalPages}
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 text-sm">
-                    Next
-                </button>
-            </div>
-        )}
         </>
         ) : (
           <p className="text-sm text-gray-500 mt-2">
@@ -289,7 +247,11 @@ const Main = () => {
 
         {deleteMultipleMode && (
           <DeleteMultipleButton 
-            selectedItems={selectedItems}>
+            selectedItems={selectedItems}
+            setSelectedItems={setSelectedItems}
+            clipboardHistory={clipboardHistory}
+            setClipboardHistory={setClipboardHistory}
+            setDeleteMultipleMode={setDeleteMultipleMode}>
           </DeleteMultipleButton>
         )}
 
