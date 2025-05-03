@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useClipboardData } from './Popup/useClipboardData.jsx';
 import { Search, Clock, ArrowUpDown, CheckSquare, Square } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { getAuth, signOut } from 'firebase/auth';
-import { app } from './firebaseConfig';
 import Background from "./components/Background.jsx";
 import DeleteButton from './components/DeleteButton.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
 import SidePanelButton from './components/SidePanelButton.jsx';
+import SignOutButton from './components/SignOutButton.jsx';
 
 const ITEMSPERPAGE = 5;
 
-const auth = getAuth(app);
-
 const Main = () => {
-  const navigate = useNavigate();
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const {clipboardHistory,
@@ -59,8 +54,6 @@ const Main = () => {
       });
   };
 
-  
-
   // Function to copy item to clipboard
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
@@ -79,25 +72,6 @@ const Main = () => {
   // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
 
-  //Signs user out
-  const handleSignOut = async () => {
-    try {
-      const currentWindow = await chrome.windows.getCurrent();
-      await signOut(auth);
-      console.log("User signed out successfully");
-      //chrome.runtime.sendMessage({ type: 'SIGN_OUT' });
-      chrome.runtime.sendMessage({
-        target: 'service-worker',
-        action: 'CLOSE_SIDEPANEL',
-        windowId: currentWindow.id
-      });
-      //Send user back to start page
-      navigate('/login');
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
-
   // Reset page when search changes
   useEffect(() => {
     setClipboardPage(0);
@@ -114,11 +88,7 @@ const Main = () => {
         </div>
         <div className="space-x-2">
           <SidePanelButton />
-          <button
-            onClick={handleSignOut}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-            Sign Out
-          </button>
+          <SignOutButton />
         </div>
       </div>
 
