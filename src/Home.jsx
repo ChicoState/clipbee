@@ -13,7 +13,6 @@ const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const {clipboardHistory,
-    clipboardPage,
     setClipboardPage,
     searchQuery,
     setSearchQuery,

@@ -1,8 +1,10 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
 
+//create clipboardHistory object
 let clipboardHistory = {
   Default: [],
+  Work: [],
 };
 let activeFolder = "Default";
 
@@ -18,6 +20,7 @@ async function createOffscreenDocument() {
 
 
 function addClipboardData(clipboardText) {
+  // adds clipboard Data to firebase
   //folder integration
   if (!clipboardHistory[activeFolder]) {
     clipboardHistory[activeFolder] = [];
@@ -48,7 +51,7 @@ async function startClipboardMonitoring() {
   // Send message to offscreen document to start monitoring
   chrome.runtime.sendMessage({ target: 'offscreen', action: 'START_MONITORING' });
   // Listen for messages
-  chrome.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // handle clipboard data from offscreen document
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_DATA') {
       addClipboardData(message.data);
@@ -58,19 +61,20 @@ async function startClipboardMonitoring() {
       clipboardHistory[activeFolder] = [];
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
+    //remove single item from clipboard history
     if (message.target === 'service-worker' && message.action === 'REMOVE_SINGLE_ITEM') {
       const index = clipboardHistory[activeFolder].indexOf(message.item);
       clipboardHistory[activeFolder].splice(index, 1);
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
-
+    //remove multiple items from clipboard history
     if (message.target === 'service-worker' && message.action === 'REMOVE_MULTIPLE_ITEMS') {
       const items = message.items;
       clipboardHistory[activeFolder] = clipboardHistory[activeFolder].filter(item => !items.includes(item));
       console.log(clipboardHistory[activeFolder]);
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
-
+    // load clipboard history in react 
     if (message.target === 'service-worker' && message.action === 'CLIPBOARD_HISTORY_REACT_LOAD') {
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
@@ -80,7 +84,7 @@ async function startClipboardMonitoring() {
       console.log(`Active folder set to: ${activeFolder}`);
       chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY',data: clipboardHistory[activeFolder] || [] }); 
     }
-    // // Add a new folder
+    // Add a new folder
     if (message.action === 'ADD_FOLDER') {
       const folderName = message.folderName;
       if (!clipboardHistory[folderName]) {
@@ -94,11 +98,18 @@ async function startClipboardMonitoring() {
     if (message.action === 'GET_FOLDERS') {
       const folderNames = Object.keys(clipboardHistory);
       chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
+      sendResponse({
+        success: true,
+        folders: folderNames,
+        //Tracking folders
+        activeFolder: activeFolder
+      });
     }   
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
       chrome.sidePanel.open({ windowId: message.windowId });
     }
+    // Handle popup open request
     if (message.target === 'service-worker' && message.action === 'OPEN_POPUP') {
       chrome.action.openPopup();
     }
@@ -107,24 +118,7 @@ async function startClipboardMonitoring() {
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log("Message received in background:", message);
-  
-   if (message.target === 'service-worker') { 
-    //Moved GET_FOLDERS to here for the sendResponse()
-    if (message.action === 'GET_FOLDERS') {
-      const folderNames = Object.keys(clipboardHistory);
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
-      sendResponse({
-        success: true,
-        folders: folderNames,
-        //Tracking folders
-        activeFolder: activeFolder
-      });
-
-
-      return true;
-    }
     if (message.action === 'CLOSE_SIDEPANEL') {
-     
       try {
         // Disable side panel for the current window
         await chrome.sidePanel.setOptions({
@@ -136,21 +130,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         console.error("Failed to close side panel:", error);
       }
     }
-    if (message.action === 'OPEN_SIDEPANEL') {
-      try {
-        // Re-register side panel path and enable it
-        await chrome.sidePanel.setOptions({
-          path: "sidepanel.html", 
-          enabled: true
-        });
-        //await chrome.sidePanel.open({ windowId: message.windowId });
-        console.log("Side panel opened");
-      } catch (error) {
-        console.error("Failed to open side panel:", error);
-      }
-    }
   }
-});
+);
 
 function createAllContextMenus() {
   chrome.contextMenus.removeAll();
@@ -172,6 +153,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   startClipboardMonitoring();
 });
 
+// Listen for context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     activeFolder = info.menuItemId;
     console.log(info.selectionText);

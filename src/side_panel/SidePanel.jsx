@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
-import { Search, Clock, ArrowUpDown, Trash } from "lucide-react";
+import { Search, Clock, ArrowUpDown } from "lucide-react";
 import {displayFiles}  from '../Firebase/firebaseData.jsx';
 import ClipboardItem from '../components/ClipboardItem.jsx';
 import ToggleDeleteMultipleButton from '../components/ToggleDeleteMultipleButton.jsx';
 import ClearHistoryButton from '../components/ClearHistoryButton.jsx';
 import DeleteMultipleButton from '../components/DeleteMultpleButton.jsx';
+import { useClipboardData } from '../Popup/useClipboardData.jsx';
 
 function SidePanel() {
-    const [clipboardHistory, setClipboardHistory] = useState([]);
     const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortOrder, setSortOrder] = useState('newest');
-    const [isSignedIn, setIsSignedIn] = useState(true);
-    const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  // Updated to support folders
-    const [activeFolder, setActiveFolder] = useState("Default");  // Track active folder
     const [fileList, setFileList] = useState([]);//Track files
+
+    const {clipboardHistory,
+        searchQuery,
+        setSearchQuery,
+        sortOrder,
+        setSortOrder,
+        folders,
+        activeFolder,
+        setActiveFolder,
+        setFolders,
+        setClipboardHistory,
+        getHistoryItems
+        } = useClipboardData();
 
     useEffect(() => {
         //Get the files from the folder
@@ -96,12 +104,6 @@ function SidePanel() {
 
     // Get current clipboard item (always the first item)
     const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
-
-    // Get history items (all items except the first one)
-    const getHistoryItems = () => {
-        if (clipboardHistory.length <= 1) return [];
-        return clipboardHistory.slice(1);
-    };
 
     // Filter and sort history items
     const getFilteredSortedHistory = () => {
