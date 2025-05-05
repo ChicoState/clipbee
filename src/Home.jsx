@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useClipboardData } from './Popup/useClipboardData.jsx';
-import { Search, Clock, ArrowUpDown} from 'lucide-react';
+import { Search } from 'lucide-react';
 import Background from "./components/Background.jsx";
 import ClipboardItem from './components/ClipboardItem.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
@@ -8,6 +8,7 @@ import SidePanelButton from './components/SidePanelButton.jsx';
 import SignOutButton from './components/SignOutButton.jsx';
 import ClearHistoryButton from './components/ClearHistoryButton.jsx';
 import ToggleDeleteMultipleButton from './components/ToggleDeleteMultipleButton.jsx';
+import SortHistoryButton from './components/SortHistoryButton.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -45,10 +46,6 @@ const Main = () => {
         setFolders((prev) => [...prev, { name }]);
         changeFolder(name);
       });
-  };
-
-  const toggleSortOrder = () => {
-    setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest');
   };
 
   // Get current clipboard item (always the first item)
@@ -105,13 +102,7 @@ const Main = () => {
       <div className="clipboard-history mt-4">
         <div className="flex justify-between items-center">
           <h4 className="font-semibold">Clipboard History</h4>
-          <button
-            onClick={toggleSortOrder}
-            className="flex items-center space-x-1 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
-            <Clock className="h-3 w-3" />
-            <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-            <ArrowUpDown className="h-3 w-3" />
-          </button>
+          <SortHistoryButton sortOrder={sortOrder} setSortOrder={setSortOrder} />
           <ToggleDeleteMultipleButton
             deleteMultipleMode={deleteMultipleMode}
             setDeleteMultipleMode={setDeleteMultipleMode}
