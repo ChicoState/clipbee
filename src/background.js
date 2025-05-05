@@ -6,6 +6,7 @@ let clipboardHistory = {
 };
 
 let activeFolder = "Default";
+let favorites = []; //max of 5
 
 async function createOffscreenDocument() {
   if (await chrome.offscreen.hasDocument()) return;
@@ -15,6 +16,24 @@ async function createOffscreenDocument() {
     justification: 'Read clipboard content',
   });
 }
+
+function addToFavorites(text) {
+  if (!favorites.includes(text)) {
+    if (favorites.length >= 5) favorites.pop(); // limit to 5
+    favorites.unshift(text);
+    console.log("Pinned to favorites:", favorites);
+  }
+}
+
+function removeFromFavorites(text) {
+  favorites = favorites.filter(item => item !== text);
+  console.log("Removed from favorites:", favorites);
+}
+
+function getFavorite(index) {
+  return favorites[index] || '';
+}
+
 
 
 function addClipboardData(clipboardText) {
@@ -156,8 +175,47 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
          console.error("Failed to open detached window:", error);
        }
      }
+    if (message.action === 'PIN_TO_FAVORITES') {
+      addToFavorites(message.item);
+      chrome.runtime.sendMessage({ type: 'FAVORITES_UPDATE', data: favorites }); 
+    }
+    if (message.action === 'UNPIN_FROM_FAVORITES') {
+      removeFromFavorites(message.item);
+      chrome.runtime.sendMessage({ type: 'FAVORITES_UPDATE', data: favorites });
+    }
+    if (message.action === 'GET_FAVORITES') {
+      console.log("Sending favorites:", favorites);
+      chrome.runtime.sendMessage({ type: 'FAVORITES_UPDATE', data: favorites });
+    }
   }
 });
+
+chrome.commands.onCommand.addListener((command) => {
+  const commandToIndex = {
+    'paste_fav_1': 0,
+    'paste_fav_2': 1,
+    'paste_fav_3': 2,
+    'paste_fav_4': 3,
+    'paste_fav_5': 4
+  };
+
+  const favIndex = commandToIndex[command];
+  if (favIndex === undefined) return;
+
+  const favText = favorites[favIndex];
+  if (!favText) {
+    console.warn(`No favorite found at index ${favIndex}`);
+    return;
+  }
+
+  // Paste via offscreen clipboard helper
+  chrome.runtime.sendMessage({
+    target: 'offscreen',
+    action: 'COPY_TO_CLIPBOARD',
+    data: favText
+  });
+});
+
 
 function createAllContextMenus() {
   chrome.contextMenus.removeAll();
