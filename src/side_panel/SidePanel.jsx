@@ -11,11 +11,6 @@ import { useClipboardData } from '../Popup/useClipboardData.jsx';
 function SidePanel() {
     const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
-    const [fileList, setFileList] = useState([]);//Track files
-    const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
-    const displayItems = getFilteredSortedHistory();
-    const totalFilteredItems = displayItems.length;
-
     const {clipboardHistory,
         searchQuery,
         setSearchQuery,
@@ -27,7 +22,11 @@ function SidePanel() {
         setClipboardHistory,
         getHistoryItems
     } = useClipboardData();
-
+    const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
+    const [fileList, setFileList] = useState([]);//Track files
+    const displayItems = getFilteredSortedHistory();
+    const totalFilteredItems = displayItems.length;
+    
     useEffect(() => {
         //Get the files from the folder
         async function fetchFiles() {
