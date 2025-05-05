@@ -19,7 +19,9 @@ export default function ClipboardItem({ item, index, clipboardHistory, setClipbo
                 <li
                     key={index}
                     onClick={() => copyToClipboard(item)}
-                    className="w-4/5">
+                    className="w-4/5"
+                    data-testid="clipboard-item"
+                >
                     <div className="p-2 truncate">{item}</div>
                 </li>
                 {deleteMultipleMode ? (<DeleteMultipleCheckbox item={item} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />) : (
