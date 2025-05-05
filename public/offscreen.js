@@ -38,4 +38,8 @@ chrome.runtime.onMessage.addListener((message) => {
   if (message.target === 'offscreen' && message.action === 'CONTEXT_MENU_ITEM_TO_CLIPBOARD') {
     copyToLocalClipboard(message.data);
   }
+  if (message.target === 'offscreen' && message.action === 'COPY_TO_CLIPBOARD') {
+    console.log("Copying favorite to clipboard:", message.data);
+    copyToLocalClipboard(message.data);
+  }
 });

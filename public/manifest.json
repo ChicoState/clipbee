@@ -24,6 +24,13 @@
         "service_worker": "background.js",
         "type": "module"
     },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["contentScript.js"],
+            "run_at": "document_idle"
+        }
+    ],
     "side_panel": {
         "default_path": "sidepanel.html"
     },
@@ -54,6 +61,18 @@
                 "default": "Ctrl+Shift+Period",
                 "mac": "Command+Shift+Period"
             }
-        }
+        },
+        "paste_fav_1": {
+            "suggested_key": {
+              "default": "Ctrl+Shift+1"
+            },
+            "description": "Paste Favorite #1"
+          },
+          "paste_fav_2": {
+            "suggested_key": {
+              "default": "Ctrl+Shift+2"
+            },
+            "description": "Paste Favorite #2"
+          }
     }
 }

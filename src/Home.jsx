@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {Search, Clock, ArrowUpDown, Trash, PanelRightOpen, PictureInPicture2} from 'lucide-react';
+import {Search, Clock, ArrowUpDown, Trash, PanelRightOpen, PictureInPicture2, Star, StarOff} from 'lucide-react';
 import {useNavigate } from 'react-router-dom';
 import { getAuth,signOut } from 'firebase/auth';
 
@@ -21,6 +21,10 @@ const Main = () => {
   const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);  
   const [activeFolder, setActiveFolder] = useState("Default");   
   const [deleteButtonHover, setDeleteButtonHover] = useState(null);
+  const [favorites, setFavorites] = useState([]);
+  const [viewFavoritesOnly, setViewFavoritesOnly] = useState(false);
+  const [favoritesReady, setFavoritesReady] = useState(false);
+
 
   function sendClearHistory() {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'CLEAR_HISTORY' });
@@ -29,10 +33,11 @@ const Main = () => {
 
   function sendRemoveSingleItem(item) {
     chrome.runtime.sendMessage({ target: 'service-worker', action: 'REMOVE_SINGLE_ITEM', item });
-    setClipboardHistory(clipboardHistory.filter(item => item !== item));
+    setClipboardHistory(clipboardHistory.filter(i => i !== item));
   }
 
   useEffect(() => {
+    setFavoritesReady(false);
     // Load clipboard history for the active folder
     chrome.runtime.sendMessage({ action: 'GET_CLIPBOARD_HISTORY' }, (response) => {
       try{
@@ -60,7 +65,13 @@ const Main = () => {
         if (message.type === 'FOLDER_UPDATE') {
             setFolders(message.folders.map(folder => ({ name: folder })));
         }
+        if (message.type === 'FAVORITES_UPDATE') {
+          console.log("Updating favorites:", message.data);
+          setFavorites(message.data);
+          setFavoritesReady(true);
+        }
     };
+    chrome.runtime.sendMessage({ action: 'GET_FAVORITES' }, () => {});
     chrome.runtime.onMessage.addListener(messageListener);
 
     // Clean up listener on unmount
@@ -71,8 +82,10 @@ const Main = () => {
 
   // Set the active folder and load its history
   const changeFolder = (folder) => {
-    setActiveFolder(folder);
-    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', Folder: folder });
+    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder }, () => {
+      setActiveFolder(folder);
+      chrome.runtime.sendMessage({ action: 'GET_FAVORITES' }); 
+    });
   };
   const handleAddFolder = () => {
     const name = prompt("Enter new folder name:");
@@ -145,7 +158,11 @@ const Main = () => {
   // Filter and sort history items
   const getFilteredAndSortedHistory = () => {
     // Get all history items (excluding current clipboard)
-    const historyItems = getHistoryItems();
+    let historyItems = getHistoryItems();
+
+    if (viewFavoritesOnly) {
+      historyItems = historyItems.filter(item => favorites.includes(item));
+    }
 
     // Filter by search query
     const filteredItems = historyItems.filter(item =>
@@ -153,11 +170,8 @@ const Main = () => {
     );
 
     // Apply sorting
-    if (sortOrder === 'oldest') {
-      return [...filteredItems].reverse();
-    }
+    return sortOrder === 'oldest' ? [...filteredItems].reverse() : filteredItems;
 
-    return filteredItems;
   };
 
   // Get paginated items
@@ -272,6 +286,11 @@ const Main = () => {
         <div className="flex justify-between items-center">
           <h4 className="font-semibold">Clipboard History</h4>
           <button
+            onClick={() => setViewFavoritesOnly(!viewFavoritesOnly)}
+            className="text-xs bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">
+            {viewFavoritesOnly ? 'Show All' : 'Show Favorites'}
+          </button>
+          <button
             onClick={toggleSortOrder}
             className="flex items-center space-x-1 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
             <Clock className="h-3 w-3" />
@@ -307,6 +326,25 @@ const Main = () => {
                 className="w-4/5">
                 <div className="p-2 truncate">{item}</div>
               </li>
+              <button
+                onClick={() => {
+                  const isFavorite = favorites.includes(item);
+                  chrome.runtime.sendMessage({
+                    target: 'service-worker',
+                    action: isFavorite ? 'UNPIN_FROM_FAVORITES' : 'PIN_TO_FAVORITES',
+                    item: item
+                  }, () => {
+                    chrome.runtime.sendMessage({ action: 'GET_FAVORITES' }); 
+                  });
+                }}
+                onMouseEnter={() => setDeleteButtonHover(`fav-${index}`)}
+                onMouseLeave={() => setDeleteButtonHover(null)}
+                title={favorites.includes(item) ? "Unpin from Favorites" : "Pin to Favorites"}
+              >
+                {favorites.includes(item)
+                  ? <Star color="gold" className={`h-5 w-5 transition-transform duration-150 ${deleteButtonHover === `fav-${index}` ? 'scale-125' : ''}`} />
+                  : <StarOff color="black" className={`h-5 w-5 transition-transform duration-150 ${deleteButtonHover === `fav-${index}` ? 'scale-125' : ''}`} />}
+              </button>
               <button
                 onClick={() => sendRemoveSingleItem(item)}
                 onMouseEnter={() => setDeleteButtonHover(index)}

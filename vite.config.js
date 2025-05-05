@@ -22,6 +22,10 @@ export default defineConfig({
         {
           src: 'public/offscreen.js', // copy offscreen script, if needed
           dest: '.'
+        },
+        {
+          src: 'contentScript.js',
+          dest: '.'
         }
       ],
     }),
