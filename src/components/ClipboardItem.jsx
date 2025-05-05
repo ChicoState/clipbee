@@ -23,7 +23,7 @@ export default function ClipboardItem({ item, index, clipboardHistory, setClipbo
                     <div className="p-2 truncate">{item}</div>
                 </li>
                 {deleteMultipleMode ? (<DeleteMultipleCheckbox item={item} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />) : (
-                    <DeleteButton
+                <DeleteButton
                     item={item}
                     clipboardHistory={clipboardHistory}
                     setClipboardHistory={setClipboardHistory}

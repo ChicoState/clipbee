@@ -16,6 +16,7 @@ const DeleteButton = ({ item, clipboardHistory, setClipboardHistory}) => {
             onClick={() => sendRemoveSingleItem(item)}
             onMouseEnter={() => setDeleteButtonHover(true)}
             onMouseLeave={() => setDeleteButtonHover(false)}
+            data-testid="delete-single-button"
         >
             {deleteButtonHover ? <Trash color='red' className='h-5 w-5 scale-125' /> : <Trash color="black" className='h-5 w-5' />}
         </button>

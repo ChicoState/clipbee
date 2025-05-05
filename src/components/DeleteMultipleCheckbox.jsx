@@ -3,7 +3,7 @@ import { CheckSquare, Square } from 'lucide-react';
 
 export default function DeleteMultipleCheckbox({ item, selectedItems, setSelectedItems }) {
     return (
-        <div className="pr-2" onClick={(e) => {
+        <div className="pr-" data-testid="delete-multiple-checkbox" onClick={(e) => {
             e.stopPropagation();
             // Toggle selection logic here
             const newSelectedItems = new Set(selectedItems);

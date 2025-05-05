@@ -12,6 +12,9 @@ function SidePanel() {
     const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [fileList, setFileList] = useState([]);//Track files
+    const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
+    const displayItems = getFilteredSortedHistory();
+    const totalFilteredItems = displayItems.length;
 
     const {clipboardHistory,
         searchQuery,
@@ -21,10 +24,9 @@ function SidePanel() {
         folders,
         activeFolder,
         setActiveFolder,
-        setFolders,
         setClipboardHistory,
         getHistoryItems
-        } = useClipboardData();
+    } = useClipboardData();
 
     useEffect(() => {
         //Get the files from the folder
@@ -39,35 +41,6 @@ function SidePanel() {
             fetchFiles();
         }
     }, [activeFolder]);
-
-    useEffect(() => {
-        // Fetch folders on mount
-        chrome.runtime.sendMessage({ action: 'GET_FOLDERS' }, (response) => {
-            setFolders(response.folders || [{ name: 'Default' }]);
-            setActiveFolder(response.activeFolder || 'Default');
-        });
-    
-        // Fetch clipboard history on mount
-        chrome.runtime.sendMessage({ action: 'GET_CLIPBOARD_HISTORY' }, (response) => {
-            setClipboardHistory(response.history || []);
-        });
-    
-        // Listener for updates
-        const messageListener = (message) => {
-            if (message.type === 'CLIPBOARD_HISTORY') {
-                setClipboardHistory(message.data);
-            }
-            if (message.type === 'FOLDER_UPDATE') {
-                setFolders(message.folders.map(folder => ({ name: folder })));
-                setActiveFolder(message.activeFolder);
-            }
-        };
-        chrome.runtime.onMessage.addListener(messageListener);
-    
-        return () => {
-            chrome.runtime.onMessage.removeListener(messageListener);
-        };
-    }, []);
 
     // Set the active folder and load its history
     const changeFolder = (folder) => {
@@ -102,9 +75,6 @@ function SidePanel() {
         setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest');
     };
 
-    // Get current clipboard item (always the first item)
-    const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
-
     // Filter and sort history items
     const getFilteredSortedHistory = () => {
         // Get all history items (excluding current clipboard)
@@ -122,9 +92,6 @@ function SidePanel() {
 
         return filteredItems;
     };
-
-    const displayItems = getFilteredSortedHistory();
-    const totalFilteredItems = displayItems.length;
 
     return (
         <div className="relative p-1 w-auto h-full bg-yellow-100 m-2 rounded-lg border border-gray-400 shadow-lg">
