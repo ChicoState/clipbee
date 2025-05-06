@@ -200,12 +200,9 @@ function SidePanel() {
 
                 {totalFilteredItems > 0 ? (
                     <ul className="space-y-2">
-                        {displayItems.map((item, index) => (
+                        {displayItems.map((item) => (
                             <ClipboardItem
                                 item={item}
-                                index={index}
-                                clipboardHistory={clipboardHistory}
-                                setClipboardHistory={setClipboardHistory}
                                 deleteMultipleMode={deleteMultipleMode}
                                 selectedItems={selectedItems}
                                 setSelectedItems={setSelectedItems}

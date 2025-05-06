@@ -2,7 +2,7 @@ import React from 'react';
 import DeleteMultipleCheckbox from './DeleteMultipleCheckbox';
 import DeleteButton from './DeleteButton';
 
-export default function ClipboardItem({ item, index, clipboardHistory, setClipboardHistory, deleteMultipleMode, selectedItems, setSelectedItems }) {
+export default function ClipboardItem({ item, deleteMultipleMode, selectedItems, setSelectedItems }) {
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text)
           .then(() => {
@@ -17,18 +17,16 @@ export default function ClipboardItem({ item, index, clipboardHistory, setClipbo
         <div className='p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer'>
             <div className='flex justify-between'>
                 <li
-                    key={index}
-                    onClick={() => copyToClipboard(item)}
+                    key={item.index}
+                    onClick={() => copyToClipboard(item.item)}
                     className="w-4/5"
                     data-testid="clipboard-item"
                 >
-                    <div className="p-2 truncate">{item}</div>
+                    <div className="p-2 truncate">{item.item}</div>
                 </li>
-                {deleteMultipleMode ? (<DeleteMultipleCheckbox item={item} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />) : (
+                {deleteMultipleMode ? (<DeleteMultipleCheckbox item={item.item} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />) : (
                 <DeleteButton
                     item={item}
-                    clipboardHistory={clipboardHistory}
-                    setClipboardHistory={setClipboardHistory}
                 />
                 )}
             </div>

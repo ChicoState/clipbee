@@ -63,8 +63,8 @@ async function startClipboardMonitoring() {
     }
     //remove single item from clipboard history
     if (message.target === 'service-worker' && message.action === 'REMOVE_SINGLE_ITEM') {
-      const index = clipboardHistory[activeFolder].indexOf(message.item);
-      clipboardHistory[activeFolder].splice(index, 1);
+      console.log(message.data);
+      clipboardHistory[activeFolder].splice(message.data.index, 1);
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
     //remove multiple items from clipboard history

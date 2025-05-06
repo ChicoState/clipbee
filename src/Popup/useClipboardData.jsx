@@ -28,11 +28,12 @@ export const useClipboardData = () => {
   }, []);
 
   const getFilteredSortedHistory = () => {
-    const items = clipboardHistory.slice(1);
-    const filtered = items.filter(item =>
-      item && item.toLowerCase().includes(searchQuery.toLowerCase())
+    const itemsWithIndex = clipboardHistory.map((item, index) => ({ item, index }));
+    const items = itemsWithIndex.slice(1);
+    const filteredWithIndex = items.filter(item =>
+      item && item.item.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    return sortOrder === 'newest' ? filtered : filtered.reverse();
+    return sortOrder === 'newest' ? filteredWithIndex : filteredWithIndex.reverse();
   };
 
   const getHistoryItems = () => {
