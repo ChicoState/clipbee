@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useClipboardData } from './Popup/useClipboardData.jsx';
-import { Search } from 'lucide-react';
+import { Search, PictureInPicture2 } from 'lucide-react';
 import Background from "./components/Background.jsx";
 import ClipboardItem from './components/ClipboardItem.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
@@ -9,6 +9,7 @@ import SignOutButton from './components/SignOutButton.jsx';
 import ClearHistoryButton from './components/ClearHistoryButton.jsx';
 import ToggleDeleteMultipleButton from './components/ToggleDeleteMultipleButton.jsx';
 import SortHistoryButton from './components/SortHistoryButton.jsx';
+import DetachedWindowButton from './components/DetachedWindowButton.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -46,8 +47,8 @@ const Main = () => {
         setFolders((prev) => [...prev, { name }]);
         changeFolder(name);
       });
-  };
-
+    };
+  
   // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
 
@@ -67,6 +68,7 @@ const Main = () => {
         </div>
         <div className="space-x-2">
           <SidePanelButton />
+          <DetachedWindowButton />
           <SignOutButton />
         </div>
       </div>

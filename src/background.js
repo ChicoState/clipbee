@@ -91,19 +91,13 @@ async function startClipboardMonitoring() {
         clipboardHistory[folderName] = [];
         console.log(`Folder created: ${folderName}`);
       }
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory) });
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory)});
       createAllContextMenus();
     }
     // Get folders
     if (message.action === 'GET_FOLDERS') {
       const folderNames = Object.keys(clipboardHistory);
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames });
-      sendResponse({
-        success: true,
-        folders: folderNames,
-        //Tracking folders
-        activeFolder: activeFolder
-      });
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder:activeFolder});
     }   
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
@@ -113,6 +107,7 @@ async function startClipboardMonitoring() {
     if (message.target === 'service-worker' && message.action === 'OPEN_POPUP') {
       chrome.action.openPopup();
     }
+   
   });
 }
 
@@ -128,6 +123,20 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         console.log("Side panel closed");
       } catch (error) {
         console.error("Failed to close side panel:", error);
+      }
+    }
+    if (message.action === 'OPEN_WINDOW') {
+      try {
+        await chrome.windows.create({
+          url: chrome.runtime.getURL("sidepanel.html"),
+          type: "popup",
+          width: 400,
+          height: 600,
+          focused: true
+        });
+        console.log("Detached window opened");
+      } catch (error) {
+        console.error("Failed to open detached window:", error);
       }
     }
   }

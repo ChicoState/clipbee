@@ -51,7 +51,7 @@ const removeButtonStyle = {
     backgroundColor: '#d32f2f',
   };
 
-function Dropzone({activeFolder}) {
+function Dropzone({activeFolder, onPublish}) {
     //hold the files
     const [files, setFiles] = useState([]);
 
@@ -80,9 +80,32 @@ function Dropzone({activeFolder}) {
             {
                 'text/plain': ['.txt'],
                 'text/csv': ['.csv'],
-                'text/html': ['.html', '.htm'],
                 //for images 
-                //'image/*': ['.png', '.jpg', '.jpeg'],
+                'image/*': ['.png', '.jpg', '.jpeg'],
+                //Pdfs, docs, and powerpoint
+                'application/pdf': ['.pdf'],
+                'application/msword': ['.doc'],
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+                'application/vnd.ms-powerpoint': ['.ppt'],
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+                //Code Files
+                'application/javascript': ['.js'],
+                'application/json': ['.json'],
+                'text/css': ['.css'],
+                'text/html': ['.html', '.htm'],
+                'text/markdown': ['.md'],
+                'text/x-python': ['.py'],
+                'text/x-java-source': ['.java'],
+                'text/x-c++src': ['.cpp'],
+                'text/x-csrc': ['.c'],          
+                'text/x-chdr': ['.h'], 
+                //Unsure how they will affect the firestore for storage
+                // 'audio/*': ['.mp3', '.wav', '.ogg'],
+                // 'video/*': ['.mp4', '.webm', '.mov', '.avi'],
+                //Media files 
+                //compressed files 
+                // 'application/zip': ['.zip'],
+                // 'application/x-tar': ['.tar'],
             },
             multiple: true,
             maxFiles: 5,
@@ -180,6 +203,10 @@ function Dropzone({activeFolder}) {
                               //Push files to selected folder 
                               const folderToUse = activeFolder || 'Default';
                               await pushFilestoStorage(files.map(f => f.file),folderToUse);
+                              //Refresh the file list after publishing to firebase
+                              if (onPublish) {
+                                onPublish();
+                              }
                             } catch (err) {
                               console.error("Publish failed:", err);
                             }
