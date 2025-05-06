@@ -28,17 +28,17 @@ function addClipboardData(clipboardText) {
   if (clipboardHistory[activeFolder].length === 0 || clipboardText !== clipboardHistory[activeFolder][0]) {
     clipboardHistory[activeFolder].unshift(clipboardText);
     console.log(`[${activeFolder}] Clipboard data changed: `, clipboardText);
+    addDoc(collection(db, "clipboardEntries"), {
+      content: clipboardText,
+      timestamp: serverTimestamp()
+    })
+      .then(docRef => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch(error => {
+        console.error("Error adding document: ", error);
+      });
   }
-  addDoc(collection(db, "clipboardEntries"), {
-          content: clipboardText,
-          timestamp: serverTimestamp()
-        })
-        .then(docRef => {
-          console.log("Document written with ID: ", docRef.id);
-        })
-        .catch(error => {
-          console.error("Error adding document: ", error);
-        });
   //send to react history
   chrome.runtime.sendMessage({
     type: 'CLIPBOARD_HISTORY',
@@ -72,7 +72,7 @@ async function startClipboardMonitoring() {
       const items = message.data;
       const indexesToRemove = items.map(item => item.index);
       const newClipboardHistory = [];
-      for(let i=0; i<clipboardHistory[activeFolder].length; i++) {
+      for (let i = 0; i < clipboardHistory[activeFolder].length; i++) {
         if (!indexesToRemove.includes(i)) {
           newClipboardHistory.push(clipboardHistory[activeFolder][i]);
         }
@@ -88,7 +88,7 @@ async function startClipboardMonitoring() {
     if (message.action === 'SET_ACTIVE_FOLDER') {
       activeFolder = message.folder;
       console.log(`Active folder set to: ${activeFolder}`);
-      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder]}); 
+      chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
     // Add a new folder
     if (message.action === 'ADD_FOLDER') {
@@ -100,16 +100,16 @@ async function startClipboardMonitoring() {
       }
       const folderNames = Object.keys(clipboardHistory);
       //trigger folder update
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: folderName});
-      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY', data: clipboardHistory[folderName]});
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: folderName });
+      chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[folderName] });
       createAllContextMenus();
     }
     // Get folders
     if (message.action === 'GET_FOLDERS') {
       const folderNames = Object.keys(clipboardHistory);
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: activeFolder});
-      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder]});
-    }   
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: activeFolder });
+      chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
+    }
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {
       chrome.sidePanel.open({ windowId: message.windowId });
@@ -118,39 +118,39 @@ async function startClipboardMonitoring() {
     if (message.target === 'service-worker' && message.action === 'OPEN_POPUP') {
       chrome.action.openPopup();
     }
-   
+
   });
 }
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log("Message received in background:", message);
-    if (message.action === 'CLOSE_SIDEPANEL') {
-      try {
-        // Disable side panel for the current window
-        await chrome.sidePanel.setOptions({
-          path: "sidepanel.html",
-          enabled: false
-        });
-        console.log("Side panel closed");
-      } catch (error) {
-        console.error("Failed to close side panel:", error);
-      }
-    }
-    if (message.action === 'OPEN_WINDOW') {
-      try {
-        await chrome.windows.create({
-          url: chrome.runtime.getURL("sidepanel.html"),
-          type: "popup",
-          width: 400,
-          height: 600,
-          focused: true
-        });
-        console.log("Detached window opened");
-      } catch (error) {
-        console.error("Failed to open detached window:", error);
-      }
+  if (message.action === 'CLOSE_SIDEPANEL') {
+    try {
+      // Disable side panel for the current window
+      await chrome.sidePanel.setOptions({
+        path: "sidepanel.html",
+        enabled: false
+      });
+      console.log("Side panel closed");
+    } catch (error) {
+      console.error("Failed to close side panel:", error);
     }
   }
+  if (message.action === 'OPEN_WINDOW') {
+    try {
+      await chrome.windows.create({
+        url: chrome.runtime.getURL("sidepanel.html"),
+        type: "popup",
+        width: 400,
+        height: 600,
+        focused: true
+      });
+      console.log("Detached window opened");
+    } catch (error) {
+      console.error("Failed to open detached window:", error);
+    }
+  }
+}
 );
 
 function createAllContextMenus() {
@@ -175,14 +175,14 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 // Listen for context menu clicks
 chrome.contextMenus.onClicked.addListener((info) => {
-    activeFolder = info.menuItemId;
-    addClipboardData(info.selectionText);
-    chrome.runtime.sendMessage({
-      target: 'offscreen',
-      action: 'CONTEXT_MENU_ITEM_TO_CLIPBOARD',
-      data: info.selectionText
-    });
-  }
+  activeFolder = info.menuItemId;
+  addClipboardData(info.selectionText);
+  chrome.runtime.sendMessage({
+    target: 'offscreen',
+    action: 'CONTEXT_MENU_ITEM_TO_CLIPBOARD',
+    data: info.selectionText
+  });
+}
 );
 
 // Start monitoring on startup
