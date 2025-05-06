@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
-import { Search, Clock, ArrowUpDown } from "lucide-react";
+import { Search } from "lucide-react";
 import ClipboardItem from '../components/ClipboardItem.jsx';
 import ToggleDeleteMultipleButton from '../components/ToggleDeleteMultipleButton.jsx';
 import ClearHistoryButton from '../components/ClearHistoryButton.jsx';

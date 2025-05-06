@@ -1,11 +1,6 @@
 import React from 'react';
 
 export default function AddFolderButton({ folders, setActiveFolder }) {
-    // Set the active folder and load its history
-    const changeFolder = (folder) => {
-        setActiveFolder(folder);
-        chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder: folder });
-    };
     const handleAddFolder = () => {
         const name = prompt("Enter new folder name:");
         if (!name) return;
