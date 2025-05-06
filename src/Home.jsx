@@ -100,8 +100,6 @@ const Main = () => {
           <DeleteMultipleButton 
             selectedItems={selectedItems}
             setSelectedItems={setSelectedItems}
-            clipboardHistory={clipboardHistory}
-            setClipboardHistory={setClipboardHistory}
             setDeleteMultipleMode={setDeleteMultipleMode}>
           </DeleteMultipleButton>
         )}

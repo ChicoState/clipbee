@@ -24,7 +24,7 @@ export default function ClipboardItem({ item, deleteMultipleMode, selectedItems,
                 >
                     <div className="p-2 truncate">{item.item}</div>
                 </li>
-                {deleteMultipleMode ? (<DeleteMultipleCheckbox item={item.item} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />) : (
+                {deleteMultipleMode ? (<DeleteMultipleCheckbox item={item} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />) : (
                 <DeleteButton
                     item={item}
                 />

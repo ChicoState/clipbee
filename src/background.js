@@ -69,9 +69,15 @@ async function startClipboardMonitoring() {
     }
     //remove multiple items from clipboard history
     if (message.target === 'service-worker' && message.action === 'REMOVE_MULTIPLE_ITEMS') {
-      const items = message.items;
-      clipboardHistory[activeFolder] = clipboardHistory[activeFolder].filter(item => !items.includes(item));
-      console.log(clipboardHistory[activeFolder]);
+      const items = message.data;
+      const indexesToRemove = items.map(item => item.index);
+      const newClipboardHistory = [];
+      for(let i=0; i<clipboardHistory[activeFolder].length; i++) {
+        if (!indexesToRemove.includes(i)) {
+          newClipboardHistory.push(clipboardHistory[activeFolder][i]);
+        }
+      }
+      clipboardHistory[activeFolder] = newClipboardHistory;
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
     // load clipboard history in react 

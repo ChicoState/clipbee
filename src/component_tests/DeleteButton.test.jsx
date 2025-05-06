@@ -11,13 +11,16 @@ global.chrome = {
 //fake setClipboardHistory
 const setClipboardHistory = jest.fn();
 
+//fake item
+const item = { item: "item", index: 0 };
+
 test("button click sends remove single item message", () => {
-    render(<DeleteButton item="item" clipboardHistory={[]} setClipboardHistory={setClipboardHistory} />);
+    render(<DeleteButton item={item} clipboardHistory={[]} setClipboardHistory={setClipboardHistory} />);
     const button = screen.getByTestId("delete-single-button");
     fireEvent.click(button);
     expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({ 
       target: "service-worker", 
-      item: "item",
+      data: item,
       action: "REMOVE_SINGLE_ITEM"
     });
 });

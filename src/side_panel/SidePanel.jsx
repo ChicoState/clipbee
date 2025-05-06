@@ -91,10 +91,7 @@ function SidePanel() {
                         <DeleteMultipleButton
                             selectedItems={selectedItems}
                             setSelectedItems={setSelectedItems}
-                            clipboardHistory={clipboardHistory}
-                            setClipboardHistory={setClipboardHistory}
                             setDeleteMultipleMode={setDeleteMultipleMode}
-                            deleteMultipleMode={deleteMultipleMode}
                         />
                         <button
                             onClick={openPopup}

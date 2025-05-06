@@ -7,10 +7,7 @@ const setClipboardHistory = jest.fn();
 
 //fake clipboardItemArgs
 const clipboardItemArgs = {
-    item: "test item",
-    index: 0,
-    clipboardHistory: ["test item 1", "test item 2"],
-    setClipboardHistory: setClipboardHistory,
+    item : { item: "test item", index: 0 },
     deleteMultipleMode: false,
     selectedItems: new Set(),
     setSelectedItems: jest.fn()

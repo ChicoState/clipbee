@@ -5,7 +5,7 @@ import DeleteMultipleCheckbox from "../components/DeleteMultipleCheckbox";
 const setSelectedItems = jest.fn();
 
 const mockProps = {
-    item: "test item",
+    item: { item: "test item", index: 0 },
     selectedItems: new Set(),
     setSelectedItems: setSelectedItems
 };
@@ -15,11 +15,11 @@ test("button click triggers setSelectedItems, with item", () => {
     render(<DeleteMultipleCheckbox {...mockProps} />);
     const button = screen.getByTestId("delete-multiple-checkbox");
     fireEvent.click(button);
-    expect(setSelectedItems).toHaveBeenCalledWith(new Set(["test item"]));
+    expect(setSelectedItems).toHaveBeenCalledWith(new Set([mockProps.item]));
 });
 
 test("button click triggers setSelectedItems, without item, because deselected", () => {
-    mockProps.selectedItems = new Set(["test item"]);
+    mockProps.selectedItems = new Set([mockProps.item]);
     render(<DeleteMultipleCheckbox {...mockProps} />);
     fireEvent.click(screen.getByTestId("delete-multiple-checkbox"));
     expect(setSelectedItems).toHaveBeenCalledWith(new Set());
@@ -34,7 +34,7 @@ test("button click changes checkbox to checked", () => {
 });
 
 test("button click changes checkbox to unchecked", () => {
-    mockProps.selectedItems = new Set(["test item"]);
+    mockProps.selectedItems = new Set([mockProps.item]);
     const {container} = render(<DeleteMultipleCheckbox {...mockProps} />);
     const button = container.firstChild;
     fireEvent.click(button);
