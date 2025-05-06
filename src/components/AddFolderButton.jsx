@@ -4,19 +4,18 @@ export default function AddFolderButton({ folders, setActiveFolder }) {
     // Set the active folder and load its history
     const changeFolder = (folder) => {
         setActiveFolder(folder);
-        chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', Folder: folder });
+        chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder: folder });
     };
     const handleAddFolder = () => {
         const name = prompt("Enter new folder name:");
         if (!name) return;
-        if (folders.some(f => f.name === name)) {
+        if (folders.some(folder => folder === name)) {
             alert("Folder already exists!");
             return;
         }
-        chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }
-            , () => {
-                changeFolder(name);
-            });
+        else{
+            chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name });
+        }
     };
 
     return (

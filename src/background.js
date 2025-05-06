@@ -82,22 +82,27 @@ async function startClipboardMonitoring() {
     if (message.action === 'SET_ACTIVE_FOLDER') {
       activeFolder = message.folder;
       console.log(`Active folder set to: ${activeFolder}`);
-      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY',data: clipboardHistory[activeFolder] || [] }); 
+      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder]}); 
     }
     // Add a new folder
     if (message.action === 'ADD_FOLDER') {
       const folderName = message.folderName;
+      //add the folder
       if (!clipboardHistory[folderName]) {
         clipboardHistory[folderName] = [];
         console.log(`Folder created: ${folderName}`);
       }
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: Object.keys(clipboardHistory)});
+      const folderNames = Object.keys(clipboardHistory);
+      //trigger folder update
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: folderName});
+      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY', data: clipboardHistory[folderName]});
       createAllContextMenus();
     }
     // Get folders
     if (message.action === 'GET_FOLDERS') {
       const folderNames = Object.keys(clipboardHistory);
-      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder:activeFolder});
+      chrome.runtime.sendMessage({ type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: activeFolder});
+      chrome.runtime.sendMessage({type:'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder]});
     }   
     // Handle side panel open request
     if (message.target === 'service-worker' && message.action === 'OPEN_SIDEPANEL') {

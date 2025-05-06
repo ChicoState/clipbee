@@ -7,6 +7,10 @@ import ClearHistoryButton from '../components/ClearHistoryButton.jsx';
 import DeleteMultipleButton from '../components/DeleteMultpleButton.jsx';
 import { useClipboardData } from '../Popup/useClipboardData.jsx';
 import {displayFiles, removeFilefromFirestore, removeFilefromStorage, deleteFolderContents}  from '../Firebase/firebaseData.jsx';
+import SortHistoryButton from '../components/SortHistoryButton.jsx';
+import FolderSelector from '../components/FolderSelector.jsx';
+import AddFolderButton from '../components/AddFolderButton.jsx';
+
 function SidePanel() {
     const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
@@ -38,23 +42,6 @@ function SidePanel() {
         }
     }, [activeFolder]);
 
-    // Set the active folder and load its history
-    const changeFolder = (folder) => {
-        setActiveFolder(folder);
-        chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder: folder });
-    };
-    
-    const handleAddFolder = () => {
-        const name = prompt("Enter new folder name:");
-        if (!name) return;
-        if (folders.some(f => f.name === name)) {
-            alert("Folder already exists!");
-            return;
-        }
-        // Send the folder creation message to the background
-        chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name });
-    };
-       
     const openPopup = async () => {
         try {
             // Send message to background script to open popup
@@ -65,10 +52,6 @@ function SidePanel() {
         } catch (error) {
             console.error('Error opening popup:', error);
         }
-    };
-
-    const toggleSortOrder = () => {
-        setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest');
     };
 
     // Filter and sort history items
@@ -142,24 +125,8 @@ function SidePanel() {
 
                 {/* Folder Selector */}
                 <div className="mt-2 flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                        <label className="text-sm font-semibold">Folder:</label>
-                        <select
-                            value={activeFolder}
-                            onChange={(e) => changeFolder(e.target.value)}
-                            className="text-sm border border-gray-300 rounded bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                            {folders.map((folder, index) => (
-                                <option key={index} value={folder.name}>{folder.name}</option>
-                            ))}
-                        </select>
-                    </div>                  
-                    <button
-                        onClick={handleAddFolder}
-                        className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded"
-                    >
-                        + Add Folder
-                    </button>
+                    <FolderSelector folders={folders} activeFolder={activeFolder} setActiveFolder={setActiveFolder} />
+                    <AddFolderButton folders={folders} setActiveFolder={setActiveFolder} />
                 </div>
             </div>
 
@@ -237,13 +204,7 @@ function SidePanel() {
             <div className="mt-4">
                 <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold">Clipboard History</h3>
-                    <button
-                        onClick={toggleSortOrder}
-                        className="flex items-center space-x-1 text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
-                        <Clock className="h-4 w-4" />
-                        <span>{sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
-                        <ArrowUpDown className="h-3 w-3" />
-                    </button>
+                    <SortHistoryButton sortOrder={sortOrder} setSortOrder={setSortOrder} />
                     <ToggleDeleteMultipleButton
                         deleteMultipleMode={deleteMultipleMode}
                         setDeleteMultipleMode={setDeleteMultipleMode}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { PanelRightOpen } from 'lucide-react';
 
 export default function SidePanelButton() {
     // Function to open the side panel
@@ -20,7 +21,7 @@ export default function SidePanelButton() {
         <button
             onClick={openSidePanel}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-            Open Side Panel
+            <PanelRightOpen className="h-4 w-4" />
         </button>
     );
 }

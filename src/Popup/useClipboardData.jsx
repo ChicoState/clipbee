@@ -7,22 +7,26 @@ export const useClipboardData = () => {
   const [clipboardPage, setClipboardPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
-  const [folders, setFolders] = useState([{ name: "Default" }, { name: "Work" }]);
+  const [folders, setFolders] = useState(["Default", "Work"]);
   const [activeFolder, setActiveFolder] = useState("Default");
 
   useEffect(() => {
     chrome.runtime.sendMessage({ action: 'GET_FOLDERS' }, (response) => {
       if (!chrome.runtime.lastError) {
-        setFolders(response.folders || [{ name: 'Default' }]);
-        setActiveFolder(response.activeFolder || 'Default');
+        setFolders(response.folders);
+        setActiveFolder(response.activeFolder);
       }
     });
 
     const messageListener = (message) => {
       if (message.type === 'CLIPBOARD_HISTORY') setClipboardHistory(message.data);
-      if (message.type === 'FOLDER_UPDATE') setFolders(message.folders.map(name => ({ name })));
+      if (message.type === 'FOLDER_UPDATE') {
+        setFolders(message.folders);
+        setActiveFolder(message.activeFolder);
+      };
     };
     chrome.runtime.onMessage.addListener(messageListener);
+    return () => chrome.runtime.onMessage.removeListener(messageListener);
   }, []);
 
   const filteredAndSortedHistory = () => {

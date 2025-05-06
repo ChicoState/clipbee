@@ -11,6 +11,7 @@ import ToggleDeleteMultipleButton from './components/ToggleDeleteMultipleButton.
 import SortHistoryButton from './components/SortHistoryButton.jsx';
 import DetachedWindowButton from './components/DetachedWindowButton.jsx';
 import AddFolderButton from './components/AddFolderButton.jsx';
+import FolderSelector from './components/FolderSelector.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -57,18 +58,7 @@ const Main = () => {
 
       {/* Folder Selector */}
       <div className="mt-2 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-semibold">Folder:</label>
-          <select
-            value={activeFolder}
-            onChange={(e) => changeFolder(e.target.value)}
-            className="text-sm border border-gray-300 rounded bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            {folders.map((folder, index) => (
-              <option key={index} value={folder.name}>{folder.name}</option>
-            ))}
-          </select>
-        </div>
+        <FolderSelector folders={folders} activeFolder={activeFolder} setActiveFolder={setActiveFolder} />
         <AddFolderButton folders={folders} setActiveFolder={setActiveFolder} />
       </div>
 
