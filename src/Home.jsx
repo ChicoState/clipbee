@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useClipboardData } from './Popup/useClipboardData.jsx';
-import { Search } from 'lucide-react';
 import Background from "./components/Background.jsx";
 import ClipboardItem from './components/ClipboardItem.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
@@ -12,12 +11,12 @@ import SortHistoryButton from './components/SortHistoryButton.jsx';
 import DetachedWindowButton from './components/DetachedWindowButton.jsx';
 import AddFolderButton from './components/AddFolderButton.jsx';
 import FolderSelector from './components/FolderSelector.jsx';
+import SearchBar from './components/SearchBar.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const {clipboardHistory,
-    setClipboardPage,
     searchQuery,
     setSearchQuery,
     sortOrder,
@@ -26,22 +25,15 @@ const Main = () => {
     activeFolder,
     setActiveFolder,
     setClipboardHistory,
-    filteredAndSortedHistory,
-    pagedItems,
+    getFilteredSortedHistory,
     getHistoryItems
     } = useClipboardData();
 
 
   // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
-
-  // Reset page when search changes
-  useEffect(() => {
-    setClipboardPage(0);
-  }, [searchQuery]);
-
-  const displayItems = pagedItems();
-  const totalFilteredItems = filteredAndSortedHistory().length;
+  const displayItems = getFilteredSortedHistory().slice(0, 5);
+  const totalFilteredItems = getFilteredSortedHistory().length;
 
   return (
     <Background>
@@ -79,17 +71,7 @@ const Main = () => {
           />
         </div>
 
-        {/* Search Input */}
-        <div className="relative mt-2">
-          <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search clipboard history..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-7 pr-4 py-1.5 w-full text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
         <div className="text-xs text-gray-600 mt-1 mb-2">
           {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Dropzone from "../components/Dropzone.jsx";
-import { Search } from "lucide-react";
 import ClipboardItem from '../components/ClipboardItem.jsx';
 import ToggleDeleteMultipleButton from '../components/ToggleDeleteMultipleButton.jsx';
 import ClearHistoryButton from '../components/ClearHistoryButton.jsx';
@@ -10,6 +9,7 @@ import {displayFiles, removeFilefromFirestore, removeFilefromStorage, deleteFold
 import SortHistoryButton from '../components/SortHistoryButton.jsx';
 import FolderSelector from '../components/FolderSelector.jsx';
 import AddFolderButton from '../components/AddFolderButton.jsx';
+import SearchBar from '../components/SearchBar.jsx';
 
 function SidePanel() {
     const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -23,7 +23,7 @@ function SidePanel() {
         activeFolder,
         setActiveFolder,
         setClipboardHistory,
-        getHistoryItems
+        getFilteredSortedHistory
     } = useClipboardData();
     const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
     const [fileList, setFileList] = useState([]);//Track files
@@ -53,25 +53,6 @@ function SidePanel() {
             console.error('Error opening popup:', error);
         }
     };
-
-    // Filter and sort history items
-    const getFilteredSortedHistory = () => {
-        // Get all history items (excluding current clipboard)
-        const historyItems = getHistoryItems();
-
-        // Filter by search query
-        const filteredItems = historyItems.filter(item =>
-            item && item.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-
-        // Apply sorting
-        if (sortOrder === 'oldest') {
-            return [...filteredItems].reverse();
-        }
-
-        return filteredItems;
-    };
-
 
     const displayItems = getFilteredSortedHistory();
     const totalFilteredItems = displayItems.length;
@@ -211,16 +192,7 @@ function SidePanel() {
                     />
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative mb-3">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                    <input
-                        type="text"
-                        placeholder="Search clipboard history..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-8 pr-4 py-2 w-full border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
+                <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
                 <div className="text-sm text-gray-600 mb-2">
                     {totalFilteredItems} {totalFilteredItems === 1 ? 'item' : 'items'} found

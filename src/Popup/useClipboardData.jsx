@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 
-const ITEMSPERPAGE = 5;
-
 export const useClipboardData = () => {
   const [clipboardHistory, setClipboardHistory] = useState([]);
   const [clipboardPage, setClipboardPage] = useState(0);
@@ -29,17 +27,12 @@ export const useClipboardData = () => {
     return () => chrome.runtime.onMessage.removeListener(messageListener);
   }, []);
 
-  const filteredAndSortedHistory = () => {
+  const getFilteredSortedHistory = () => {
     const items = clipboardHistory.slice(1);
     const filtered = items.filter(item =>
       item && item.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    return sortOrder === 'oldest' ? [...filtered].reverse() : filtered;
-  };
-
-  const pagedItems = () => {
-    const items = filteredAndSortedHistory();
-    return items.slice(clipboardPage * ITEMSPERPAGE, (clipboardPage + 1) * ITEMSPERPAGE);
+    return sortOrder === 'newest' ? filtered : filtered.reverse();
   };
 
   const getHistoryItems = () => {
@@ -60,8 +53,7 @@ export const useClipboardData = () => {
     setActiveFolder,
     setFolders,
     setClipboardHistory,
-    filteredAndSortedHistory,
-    pagedItems,
+    getFilteredSortedHistory,
     getHistoryItems,
   };
 };
