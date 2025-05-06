@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useClipboardData } from './Popup/useClipboardData.jsx';
-import { Search, PictureInPicture2 } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Background from "./components/Background.jsx";
 import ClipboardItem from './components/ClipboardItem.jsx';
 import DeleteMultipleButton from './components/DeleteMultpleButton.jsx';
@@ -10,6 +10,7 @@ import ClearHistoryButton from './components/ClearHistoryButton.jsx';
 import ToggleDeleteMultipleButton from './components/ToggleDeleteMultipleButton.jsx';
 import SortHistoryButton from './components/SortHistoryButton.jsx';
 import DetachedWindowButton from './components/DetachedWindowButton.jsx';
+import AddFolderButton from './components/AddFolderButton.jsx';
 
 const Main = () => {
   const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -23,32 +24,13 @@ const Main = () => {
     folders,
     activeFolder,
     setActiveFolder,
-    setFolders,
     setClipboardHistory,
     filteredAndSortedHistory,
     pagedItems,
     getHistoryItems
     } = useClipboardData();
 
-  // Set the active folder and load its history
-  const changeFolder = (folder) => {
-    setActiveFolder(folder);
-    chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', Folder: folder });
-  };
-  const handleAddFolder = () => {
-    const name = prompt("Enter new folder name:");
-    if (!name) return;
-    if (folders.some(f => f.name === name)) {
-      alert("Folder already exists!");
-      return;
-    }
-    chrome.runtime.sendMessage({ action: 'ADD_FOLDER', folderName: name }
-      , () => {
-        setFolders((prev) => [...prev, { name }]);
-        changeFolder(name);
-      });
-    };
-  
+
   // Get current clipboard item (always the first item)
   const currentClipboardItem = clipboardHistory.length > 0 ? clipboardHistory[0] : '';
 
@@ -87,11 +69,7 @@ const Main = () => {
             ))}
           </select>
         </div>
-        <button
-          onClick={handleAddFolder}
-          className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
-          + Add Folder
-        </button>
+        <AddFolderButton folders={folders} setActiveFolder={setActiveFolder} />
       </div>
 
       {/* Current Clipboard */}

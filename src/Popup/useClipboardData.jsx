@@ -23,7 +23,6 @@ export const useClipboardData = () => {
       if (message.type === 'FOLDER_UPDATE') setFolders(message.folders.map(name => ({ name })));
     };
     chrome.runtime.onMessage.addListener(messageListener);
-    return () => chrome.runtime.onMessage.removeListener(messageListener);
   }, []);
 
   const filteredAndSortedHistory = () => {

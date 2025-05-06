@@ -163,9 +163,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 // Listen for context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener((info) => {
     activeFolder = info.menuItemId;
-    console.log(info.selectionText);
     addClipboardData(info.selectionText);
     chrome.runtime.sendMessage({
       target: 'offscreen',
