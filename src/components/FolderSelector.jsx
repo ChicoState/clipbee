@@ -2,7 +2,6 @@ import React from 'react';
 
 export default function FolderSelector({ folders, activeFolder, setActiveFolder }) {
    const changeFolder = (folder) => {
-        setActiveFolder(folder);
         chrome.runtime.sendMessage({ action: 'SET_ACTIVE_FOLDER', folder: folder });
     }; 
 

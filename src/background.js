@@ -86,8 +86,21 @@ async function startClipboardMonitoring() {
     }
     //set the active Folder
     if (message.action === 'SET_ACTIVE_FOLDER') {
+      let currentItem = clipboardHistory[activeFolder][0];
       activeFolder = message.folder;
+      const folderNames = Object.keys(clipboardHistory);
+      chrome.runtime.sendMessage({type: 'FOLDER_UPDATE', folders: folderNames, activeFolder: activeFolder});
       console.log(`Active folder set to: ${activeFolder}`);
+      //Remove current clipboard item from other folders
+      for (const folder in clipboardHistory) {
+        if (folder !== activeFolder) {
+          //added to remove current item from other folders,
+          //to prevent from mistakenly storing it in history
+          if (clipboardHistory[folder].length > 0 && clipboardHistory[folder][0] === currentItem) {
+            clipboardHistory[folder].splice(0, 1);
+          }
+        }
+      }
       chrome.runtime.sendMessage({ type: 'CLIPBOARD_HISTORY', data: clipboardHistory[activeFolder] });
     }
     // Add a new folder
