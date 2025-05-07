@@ -4,7 +4,7 @@ import ClipboardItem from '../components/ClipboardItem.jsx';
 import ToggleDeleteMultipleButton from '../components/ToggleDeleteMultipleButton.jsx';
 import ClearHistoryButton from '../components/ClearHistoryButton.jsx';
 import DeleteMultipleButton from '../components/DeleteMultpleButton.jsx';
-import { useClipboardData } from '../Popup/useClipboardData.jsx';
+import { useClipboardData } from '../hooks/useClipboardData.jsx';
 import {displayFiles, removeFilefromFirestore, removeFilefromStorage, deleteFolderContents}  from '../Firebase/firebaseData.jsx';
 import SortHistoryButton from '../components/SortHistoryButton.jsx';
 import FolderSelector from '../components/FolderSelector.jsx';
@@ -104,7 +104,7 @@ function SidePanel() {
                 {/* Folder Selector */}
                 <div className="mt-2 flex justify-between items-center">
                     <FolderSelector folders={folders} activeFolder={activeFolder} setActiveFolder={setActiveFolder} />
-                    <AddFolderButton folders={folders} setActiveFolder={setActiveFolder} />
+                    <AddFolderButton folders={folders} />
                 </div>
             </div>
 
