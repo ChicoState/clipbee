@@ -20,6 +20,7 @@ export default function SidePanelButton() {
     return (
         <button
             onClick={openSidePanel}
+            data-testid="side-panel-button"
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
             <PanelRightOpen className="h-4 w-4" />
         </button>
