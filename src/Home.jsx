@@ -23,10 +23,8 @@ const Main = () => {
     setSortOrder,
     folders,
     activeFolder,
-    setActiveFolder,
     setClipboardHistory,
     getFilteredSortedHistory,
-    getHistoryItems
     } = useClipboardData();
 
 
@@ -92,7 +90,7 @@ const Main = () => {
         </>
         ) : (
           <p className="text-sm text-gray-500 mt-2">
-            {getHistoryItems().length === 0 ? "No clipboard history yet" : "No matching clipboard items found"}
+            {getFilteredSortedHistory().length === 0 ? "No clipboard history yet" : "No matching clipboard items found"}
           </p>
         )}
 
@@ -104,7 +102,7 @@ const Main = () => {
           </DeleteMultipleButton>
         )}
 
-        {getHistoryItems().length > 0 && (<ClearHistoryButton setClipboardHistory={setClipboardHistory} />)}
+        {getFilteredSortedHistory().length > 0 && (<ClearHistoryButton setClipboardHistory={setClipboardHistory} />)}
       </div>
     </Background>
   );

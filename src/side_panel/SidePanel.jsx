@@ -21,7 +21,6 @@ function SidePanel() {
         setSortOrder,
         folders,
         activeFolder,
-        setActiveFolder,
         setClipboardHistory,
         getFilteredSortedHistory
     } = useClipboardData();
@@ -86,18 +85,20 @@ function SidePanel() {
             <div className="mb-4">
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-bold">Clipbee</h3>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 h-full">
                         <ClearHistoryButton setClipboardHistory={setClipboardHistory} />
                         <DeleteMultipleButton
                             selectedItems={selectedItems}
                             setSelectedItems={setSelectedItems}
                             setDeleteMultipleMode={setDeleteMultipleMode}
                         />
+                    <div className="mt-4 flex justify-center">
                         <button
                             onClick={openPopup}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                             Open Popup
                         </button>
+                    </div>
                     </div>
                 </div>
 
