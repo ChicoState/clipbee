@@ -17,6 +17,7 @@ export default function DetachedWindowButton() {
 
     return (
         <button
+            data-testid="detached-window-button"
             onClick={openDetachedWindow}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
             <PictureInPicture2 className="h-4 w-4" />
