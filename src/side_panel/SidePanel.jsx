@@ -10,6 +10,7 @@ import SortHistoryButton from '../components/SortHistoryButton.jsx';
 import FolderSelector from '../components/FolderSelector.jsx';
 import AddFolderButton from '../components/AddFolderButton.jsx';
 import SearchBar from '../components/SearchBar.jsx';
+import OpenPopupButton from '../components/OpenPopupButton.jsx';
 
 function SidePanel() {
     const [deleteMultipleMode, setDeleteMultipleMode] = useState(false);
@@ -40,18 +41,6 @@ function SidePanel() {
             fetchFiles();
         }
     }, [activeFolder]);
-
-    const openPopup = async () => {
-        try {
-            // Send message to background script to open popup
-            chrome.runtime.sendMessage({
-                target: 'service-worker',
-                action: 'OPEN_POPUP',
-            });
-        } catch (error) {
-            console.error('Error opening popup:', error);
-        }
-    };
 
     const displayItems = getFilteredSortedHistory();
     const totalFilteredItems = displayItems.length;
@@ -92,13 +81,7 @@ function SidePanel() {
                             setSelectedItems={setSelectedItems}
                             setDeleteMultipleMode={setDeleteMultipleMode}
                         />
-                    <div className="mt-4 flex justify-center">
-                        <button
-                            onClick={openPopup}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                            Open Popup
-                        </button>
-                    </div>
+                        <OpenPopupButton />
                     </div>
                 </div>
 
