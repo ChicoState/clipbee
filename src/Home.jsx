@@ -50,7 +50,7 @@ const Main = () => {
 
       {/* Folder Selector */}
       <div className="mt-2 flex justify-between items-center">
-        <FolderSelector folders={folders} activeFolder={activeFolder} setActiveFolder={setActiveFolder} />
+        <FolderSelector folders={folders} activeFolder={activeFolder} />
         <AddFolderButton folders={folders} />
       </div>
 
