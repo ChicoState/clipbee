@@ -20,6 +20,7 @@ export default function AddFolderButton({ folders }) {
             <div className="flex flex-col col-span-2 items-center justify-center">
                 <input
                     type="text"
+                    data-testid="add-folder-input"
                     placeholder="Enter new folder name:"
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
@@ -27,12 +28,14 @@ export default function AddFolderButton({ folders }) {
                 />
                 {folderName ? (
                     <button
+                        data-testid="confirm-add-folder-button"
                         onClick={handleAddFolder}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 border border-blue-700 rounded">
                         Add
                     </button>
                 ) : (
                     <button
+                        data-testid="cancel-add-folder-button"
                         onClick={() => setAddingFolder(false)}
                         className="bg-red-500 hover:bg-red-600 text-white px-5 py-1.5 border border-red-700 rounded">
                         Cancel
