@@ -6,5 +6,5 @@ import SidePanel from './side_panel/SidePanel.jsx'
 createRoot(document.getElementById('root')).render(
     <StrictMode>
         <SidePanel />
-    </StrictMode>,
+    </StrictMode>
 )
