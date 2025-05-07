@@ -7,6 +7,7 @@ export default function SearchBar({ searchQuery, setSearchQuery }) {
           <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-500" />
           <input
             type="text"
+            data-testid="search-bar"
             placeholder="Search clipboard history..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
